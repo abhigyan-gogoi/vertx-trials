@@ -80,6 +80,30 @@ public class Server extends AbstractVerticle {
           .put("Paths", "Starts with 'routing/begin-something/*")
       );
     });
+    // Routing by capturing path parameters 1
+    router.route("/routing/:param1/:param2/").handler(context -> {
+      String param1 = context.pathParam("param1");
+      String param2 = context.pathParam("param2");
+      // JSON response
+      context.json(
+        new JsonObject()
+          .put("Page", "Routing by capturing path parameters 1")
+          .put("param1", param1)
+          .put("param2", param2)
+      );
+    });
+    // Routing by capturing path parameters 2
+    router.route("/routing/:param1-:param2/").handler(context -> {
+      String param1 = context.pathParam("param1");
+      String param2 = context.pathParam("param2");
+      // JSON response
+      context.json(
+        new JsonObject()
+          .put("Page", "Routing by capturing path parameters 2")
+          .put("param1", param1)
+          .put("param2", param2)
+      );
+    });
 
     // Start server on port 8888
     server
