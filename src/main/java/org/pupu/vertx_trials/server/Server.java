@@ -2,16 +2,29 @@ package org.pupu.vertx_trials.server;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.MultiMap;
+import io.vertx.core.Promise;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
+import java.util.Random;
+import java.util.UUID;
+
 public class Server extends AbstractVerticle {
+  private String output = "Temperature recorded : ";
+  private static final int httpPort = Integer.parseInt(System.getenv()
+    .getOrDefault("HTTP_PORT", "8080"));
+  private final String uuid = UUID.randomUUID().toString();
+  private double temp = 21.0;
+  private final Random random = new Random();
 
   @Override
-  public void start() throws Exception {
+  public void start(Promise<Void> startPromise) {
+    vertx.setPeriodic(2000, this::updateTemperature);
+    startPromise.complete();
+
     // Create HTTP server
     HttpServer server = vertx.createHttpServer();
     // Create a router
@@ -72,7 +85,7 @@ public class Server extends AbstractVerticle {
     router.route("/routing/begin-something/*").handler(this::routingBeginSomething);
 
     // Routing by capturing path parameters 1
-    router.route("/routing/:param1-:param2/").handler(this::routingParam1);
+    router.route("/routing/:param1/:param2/").handler(this::routingParam1);
 
     // Routing by capturing path parameters 2
     router.route("/routing/:param1-:param2/").handler(this::routingParam2);
@@ -80,6 +93,8 @@ public class Server extends AbstractVerticle {
     // Redirect to a new URL
     router.route("/redirect/").handler(this::redirectURL);
 
+    // Record temperature Data
+    router.route("/temp/").handler(this::recordTemperature);
 
     // Start server on port 8888
     server
@@ -92,6 +107,16 @@ public class Server extends AbstractVerticle {
         System.out.println("HTTP server started on port: " + httpServer.actualPort());
         }
       );
+
+  }
+
+  private void updateTemperature(Long id) {
+    temp = temp+(random.nextGaussian() / 2.0d);
+    System.out.println(output+temp);
+  }
+
+  // Method to Record temperature Data
+  private void recordTemperature(RoutingContext routingContext) {
 
   }
 
