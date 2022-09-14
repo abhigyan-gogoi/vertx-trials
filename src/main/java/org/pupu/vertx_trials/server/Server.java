@@ -43,16 +43,9 @@ public class Server extends AbstractVerticle {
     router.route("/next-handler/").handler(this::nextEndHandler);
 
     // Different Routing methods
-    // Routing by exact path
     router.route("/routing/exact-path/").handler(this::routingExactPath);
-
-    // Routing by path that begins with something
     router.route("/routing/begin-something/*").handler(this::routingBeginSomething);
-
-    // Routing by capturing path parameters 1
     router.route("/routing/:param1/:param2/").handler(this::routingParam1);
-
-    // Routing by capturing path parameters 2
     router.route("/routing/:param1-:param2/").handler(this::routingParam2);
 
     // Redirect to a new URL
@@ -81,12 +74,24 @@ public class Server extends AbstractVerticle {
   private void updateTemperatureData(Long id) {
     temp = temp+(random.nextGaussian() / 2.0d);
     System.out.println(output+temp);
+
+    vertx.eventBus()
+      .publish("Temperature.updates", createPayload());
   }
 
   // Method to Record temperature Data
   private void getTemperatureData(RoutingContext routingContext) {
     System.out.println("Processing HTTP request from " +
       routingContext.request().remoteAddress());
+    JsonObject payload = createPayload();
+    routingContext.response()
+      .putHeader("Content-type", "app/json")
+      .setStatusCode(200)
+      .end(payload.encodePrettily());
+  }
+
+  // Method to generate JSON payload with uuid, temperature and timestamp
+  private JsonObject createPayload() {
     long millisec = System.currentTimeMillis();
     SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd,yyyy HH:mm:ss");
     Date date = new Date(millisec);
@@ -94,10 +99,7 @@ public class Server extends AbstractVerticle {
       .put("uuid", uuid)
       .put("temperature", temp)
       .put("timestamp", dateFormat.format(date));
-    routingContext.response()
-      .putHeader("Content-type", "app/json")
-      .setStatusCode(200)
-      .end(payload.encodePrettily());
+    return payload;
   }
 
   // Method returns JSON response
