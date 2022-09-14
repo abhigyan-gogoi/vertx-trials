@@ -9,20 +9,22 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Random;
 import java.util.UUID;
 
 public class Server extends AbstractVerticle {
   private String output = "Temperature recorded : ";
   private static final int httpPort = Integer.parseInt(System.getenv()
-    .getOrDefault("HTTP_PORT", "8080"));
+    .getOrDefault("HTTP_PORT", "8888"));
   private final String uuid = UUID.randomUUID().toString();
   private double temp = 21.0;
   private final Random random = new Random();
 
   @Override
   public void start(Promise<Void> startPromise) {
-    vertx.setPeriodic(2000, this::updateTemperature);
+    vertx.setPeriodic(2000, this::updateTemperatureData);
     startPromise.complete();
 
     // Create HTTP server
@@ -94,30 +96,45 @@ public class Server extends AbstractVerticle {
     router.route("/redirect/").handler(this::redirectURL);
 
     // Record temperature Data
-    router.route("/temp/").handler(this::recordTemperature);
+    router.route("/temp/").handler(this::getTemperatureData);
 
     // Start server on port 8888
     server
       // Router to handle every request
       .requestHandler(router)
       // Start listening on port 8888
-      .listen(8888)
+      .listen(httpPort)
       // Print connection port
       .onSuccess(httpServer -> {
         System.out.println("HTTP server started on port: " + httpServer.actualPort());
+        startPromise.complete();
         }
-      );
+      )
+      .onFailure(startPromise::fail);
 
   }
 
-  private void updateTemperature(Long id) {
+  // Method updates temperature randomly
+  private void updateTemperatureData(Long id) {
     temp = temp+(random.nextGaussian() / 2.0d);
     System.out.println(output+temp);
   }
 
   // Method to Record temperature Data
-  private void recordTemperature(RoutingContext routingContext) {
-
+  private void getTemperatureData(RoutingContext routingContext) {
+    System.out.println("Processing HTTP request from " +
+      routingContext.request().remoteAddress());
+    long millisec = System.currentTimeMillis();
+    SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd,yyyy HH:mm:ss");
+    Date date = new Date(millisec);
+    JsonObject payload = new JsonObject()
+      .put("uuid", uuid)
+      .put("temperature", temp)
+      .put("timestamp", dateFormat.format(date));
+    routingContext.response()
+      .putHeader("Content-type", "app/json")
+      .setStatusCode(200)
+      .end(payload.encodePrettily());
   }
 
   // Method for Routing by exact path
