@@ -33,52 +33,16 @@ public class Server extends AbstractVerticle {
 
     // Mount handler for specific incoming requests
     // At '/' path and HTTP method
-    router.route("/").handler(context -> {
-      // Get address of request
-      String address = context.request().connection().remoteAddress().toString();
-      // Get the query parameter "name"
-      MultiMap queryParams = context.queryParams();
-      String name = queryParams.contains("name") ? queryParams.get("name") : "unknown";
+    router.route("/").handler(this::landingHandler);
 
-      // JSON response
-      context.json(
-        new JsonObject()
-          .put("name", name)
-          .put("address", address)
-          .put("message", "Hello "+name+" connected from Vertx Web! Address:"+address)
-      );
-    });
-    // At '/next-handler/' path
     // Setup and Calling next() in handler
-    router.route("/next-handler/").handler(context -> {
-      HttpServerResponse response = context.response();
-
-      // enable chunked responses because we will be adding data as
-      // we execute over other handlers. This is only required once and
-      // only if several handlers do output.
-      response.setChunked(true);
-      // String response
-      response.write("Calling next()\n");
-      // Call the next matching route after a 1-second delay
-      context.vertx().setTimer(3000, tid -> context.next());
-    });
+    router.route("/next-handler/").handler(this::nextHandler);
     // Calling next() in handler
-    router.route("/next-handler/").handler(context -> {
-      HttpServerResponse response = context.response();
-      // String response
-      response.write("Calling next()\n");
-      // Call the next matching route after a 1-second delay
-      context.vertx().setTimer(3000, tid -> context.next());
-    });
+    router.route("/next-handler/").handler(this::nextNextHandler);
     // Calling end() in handler
-    router.route("/next-handler/").handler(context -> {
-      HttpServerResponse response = context.response();
-      // String response
-      response.write("Calling end()\n");
-      // Now end the response
-      context.response( ).end();
-    });
+    router.route("/next-handler/").handler(this::nextEndHandler);
 
+    // Different Routing methods
     // Routing by exact path
     router.route("/routing/exact-path/").handler(this::routingExactPath);
 
@@ -134,6 +98,55 @@ public class Server extends AbstractVerticle {
       .putHeader("Content-type", "app/json")
       .setStatusCode(200)
       .end(payload.encodePrettily());
+  }
+
+  // Method returns JSON response
+  private void landingHandler(RoutingContext routingContext) {
+    // Get address of request
+    String address = routingContext.request().connection().remoteAddress().toString();
+    // Get the query parameter "name"
+    MultiMap queryParams = routingContext.queryParams();
+    String name = queryParams.contains("name") ? queryParams.get("name") : "unknown";
+
+    // JSON response
+    routingContext.json(
+      new JsonObject()
+        .put("name", name)
+        .put("address", address)
+        .put("message", "Hello "+name+" connected from Vertx Web! Address:"+address)
+    );
+  }
+
+  // Methods showing Setup and Calling next() in handler
+  private void nextHandler(RoutingContext routingContext) {
+    HttpServerResponse response = routingContext.response();
+
+    // enable chunked responses because we will be adding data as
+    // we execute over other handlers. This is only required once and
+    // only if several handlers do output.
+    response.setChunked(true);
+    // String response
+    response.write("Calling next()\n");
+    // Call the next matching route after a 1-second delay
+    routingContext.vertx().setTimer(3000, tid -> routingContext.next());
+  }
+
+  // Method Calling next() in handler
+  private void nextNextHandler(RoutingContext routingContext) {
+    HttpServerResponse response = routingContext.response();
+    // String response
+    response.write("Calling next()\n");
+    // Call the next matching route after a 1-second delay
+    routingContext.vertx().setTimer(3000, tid -> routingContext.next());
+  }
+
+  // Method Calling end() in handler
+  private void nextEndHandler(RoutingContext routingContext) {
+    HttpServerResponse response = routingContext.response();
+    // String response
+    response.write("Calling end()\n");
+    // Now end the response
+    routingContext.response( ).end();
   }
 
   // Method for Routing by exact path
