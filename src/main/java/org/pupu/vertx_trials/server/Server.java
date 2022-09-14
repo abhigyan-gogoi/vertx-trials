@@ -104,6 +104,10 @@ public class Server extends AbstractVerticle {
           .put("param2", param2)
       );
     });
+    // Redirect to a new URL
+    router.route("/redirect/").handler(context -> {
+      context.redirect("https://vertx.io/docs/vertx-web/java/");
+    });
 
     // Start server on port 8888
     server
