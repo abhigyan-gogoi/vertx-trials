@@ -23,9 +23,8 @@ public class Server extends AbstractVerticle {
   private final Random random = new Random();
 
   @Override
-  public void start(Promise<Void> startPromise) {
+  public void start(Promise<Void> startPromise) throws Exception {
     vertx.setPeriodic(2000, this::updateTemperatureData);
-    startPromise.complete();
 
     // Create HTTP server
     HttpServer server = vertx.createHttpServer();
