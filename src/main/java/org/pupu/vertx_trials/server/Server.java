@@ -5,7 +5,6 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 
 public class Server extends AbstractVerticle {
@@ -35,7 +34,7 @@ public class Server extends AbstractVerticle {
       );
     });
     // At '/next-handler/' path
-    // Calling next in handler
+    // Setup and Calling next() in handler
     router.route("/next-handler/").handler(context -> {
       HttpServerResponse response = context.response();
 
@@ -48,7 +47,7 @@ public class Server extends AbstractVerticle {
       // Call the next matching route after a 1-second delay
       context.vertx().setTimer(3000, tid -> context.next());
     });
-
+    // Calling next() in handler
     router.route("/next-handler/").handler(context -> {
       HttpServerResponse response = context.response();
       // String response
@@ -56,13 +55,30 @@ public class Server extends AbstractVerticle {
       // Call the next matching route after a 1-second delay
       context.vertx().setTimer(3000, tid -> context.next());
     });
-
+    // Calling end() in handler
     router.route("/next-handler/").handler(context -> {
       HttpServerResponse response = context.response();
       // String response
       response.write("Calling end()\n");
       // Now end the response
       context.response( ).end();
+    });
+    // Routing by exact path
+    router.route("/routing/exact-path/").handler(context -> {
+      // JSON response
+      context.json(
+        new JsonObject()
+          .put("Page", "Routing by Exact Path")
+      );
+    });
+    // Routing by path that begins with something
+    router.route("/routing/begin-something/*").handler(context -> {
+      // JSON response
+      context.json(
+        new JsonObject()
+          .put("Page", "Routing by Exact Path")
+          .put("Paths", "Starts with 'routing/begin-something/*")
+      );
     });
 
     // Start server on port 8888
@@ -74,9 +90,6 @@ public class Server extends AbstractVerticle {
       // Print connection port
       .onSuccess(httpServer -> {
         System.out.println("HTTP server started on port: " + httpServer.actualPort());
-        /*
-
-         */
         }
       );
 
