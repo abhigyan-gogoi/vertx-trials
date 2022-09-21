@@ -15,7 +15,7 @@ import java.util.Random;
 import java.util.UUID;
 
 public class Server extends AbstractVerticle {
-  private String output = "Temperature recorded : ";
+  private final String output = "Temperature recorded : ";
   private static final int httpPort = Integer.parseInt(System.getenv()
     .getOrDefault("HTTP_PORT", "8888"));
   private final String uuid = UUID.randomUUID().toString();
@@ -23,7 +23,7 @@ public class Server extends AbstractVerticle {
   private final Random random = new Random();
 
   @Override
-  public void start(Promise<Void> startPromise) throws Exception {
+  public void start(Promise<Void> startPromise) {
     vertx.setPeriodic(2000, this::updateTemperatureData);
 
     // Create HTTP server
@@ -43,10 +43,29 @@ public class Server extends AbstractVerticle {
     router.route("/next-handler/").handler(this::nextEndHandler);
 
     // Different Routing methods
-    router.route("/routing/exact-path/").handler(this::routingExactPath);
-    router.route("/routing/begin-something/*").handler(this::routingBeginSomething);
-    router.route("/routing/:param1/:param2/").handler(this::routingParam1);
-    router.route("/routing/:param1-:param2/").handler(this::routingParam2);
+    router
+      .route("/routing/exact-path/")
+      .handler(this::routingExactPath);
+    router
+      .route("/routing/begin-something/*")
+      .handler(this::routingBeginSomething);
+    router
+      .route()
+      .pathRegex(".*reg")
+      .handler(this::routingRegularExpressions);
+    router
+      .routeWithRegex(".*reg-alt")
+      .handler(this::routingRegularExpressionsAlt);
+    router
+      .routeWithRegex(".*reg-params")
+      .pathRegex("\\/([^\\/]+)\\/([^\\/]+)")
+      .handler(this::routingRegularParam1);
+    router
+      .route("/routing/:param1/:param2/")
+      .handler(this::routingParam1);
+    router
+      .route("/routing/:param1-:param2/")
+      .handler(this::routingParam2);
 
     // Redirect to a new URL
     router.route("/redirect/").handler(this::redirectURL);
@@ -95,11 +114,10 @@ public class Server extends AbstractVerticle {
     long millisec = System.currentTimeMillis();
     SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd,yyyy HH:mm:ss");
     Date date = new Date(millisec);
-    JsonObject payload = new JsonObject()
+    return new JsonObject()
       .put("uuid", uuid)
       .put("temperature", temp)
       .put("timestamp", dateFormat.format(date));
-    return payload;
   }
 
   // Method returns JSON response
@@ -196,8 +214,57 @@ public class Server extends AbstractVerticle {
     );
   }
 
+  // Method for routing using regular expressions
+  private void routingRegularExpressions(RoutingContext routingContext) {
+    // This handler will be called for:
+    // /some/path/reg
+    // /reg
+    // /reg/bar/wibble/reg
+    // /bar/reg
+    // But not:
+    // /bar/wibble
+    // JSON response
+    routingContext.json(
+      new JsonObject()
+        .put("Page", "Routing by Regular Expressions")
+    );
+  }
+
+  // Method (Alternate) for routing using regular expressions
+  private void routingRegularExpressionsAlt(RoutingContext routingContext) {
+    // This handler will be called for:
+    // /some/path/reg-alt
+    // /reg-alt
+    // /reg-alt/bar/wibble/reg-alt
+    // /bar/reg-alt
+    // But not:
+    // /bar/wibble
+    // JSON response
+    routingContext.json(
+      new JsonObject()
+        .put("Page", "Routing (Alternate: using pathRegex) by Regular Expressions")
+    );
+  }
+
+  // Method for routing using Regular Expressions by capturing parameters
+  private void routingRegularParam1(RoutingContext routingContext) {
+    // This regular expression matches paths that start with something like:
+    // "/reg-params/bar" - where the "reg-params" is captured into param0 and the "bar" is
+    // captured into param1
+    String param0 = routingContext.pathParam("param0");
+    String param1 = routingContext.pathParam("param1");
+    // JSON response
+    routingContext.json(
+      new JsonObject()
+        .put("Page", "Routing with Regular Expressions by capturing path parameters")
+        .put("param0", param0)
+        .put("param1", param1)
+    );
+  }
+
   // Method to redirect to a new URL
   private void redirectURL(RoutingContext routingContext) {
     routingContext.redirect("https://vertx.io/docs/vertx-web/java/");
   }
 }
+
