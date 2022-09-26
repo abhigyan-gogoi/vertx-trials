@@ -9,22 +9,22 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Random;
-import java.util.UUID;
+//import java.text.SimpleDateFormat;
+//import java.util.Date;
+//import java.util.Random;
+//import java.util.UUID;
 
 public class Server extends AbstractVerticle {
-  private final String output = "Temperature recorded : ";
+//  private final String output = "Temperature recorded : ";
   private static final int httpPort = Integer.parseInt(System.getenv()
     .getOrDefault("HTTP_PORT", "8888"));
-  private final String uuid = UUID.randomUUID().toString();
-  private double temp = 21.0;
-  private final Random random = new Random();
+//  private final String uuid = UUID.randomUUID().toString();
+//  private double temp = 21.0;
+//  private final Random random = new Random();
 
   @Override
   public void start(Promise<Void> startPromise) {
-    vertx.setPeriodic(2000, this::updateTemperatureData);
+//    vertx.setPeriodic(2000, this::updateTemperatureData);
 
     // Create HTTP server
     HttpServer server = vertx.createHttpServer();
@@ -36,42 +36,26 @@ public class Server extends AbstractVerticle {
     router.route("/").handler(this::landingHandler);
 
     // Setup and Calling next() in handler
-    router.route("/next-handler/").handler(this::nextHandler);
+    router.route("/routes/next-handler").handler(this::nextHandler);
     // Calling next() in handler
-    router.route("/next-handler/").handler(this::nextNextHandler);
+    router.route("/routes/next-handler").handler(this::nextNextHandler);
     // Calling end() in handler
-    router.route("/next-handler/").handler(this::nextEndHandler);
+    router.route("/routes/next-handler").handler(this::nextEndHandler);
 
     // Different Routing methods
-    router
-      .route("/routing/exact-path/")
-      .handler(this::routingExactPath);
-    router
-      .route("/routing/begin-something/*")
-      .handler(this::routingBeginSomething);
-    router
-      .route()
-      .pathRegex(".*reg")
-      .handler(this::routingRegularExpressions);
-    router
-      .routeWithRegex(".*reg-alt")
-      .handler(this::routingRegularExpressionsAlt);
-    router
-      .routeWithRegex(".*reg-params")
-      .pathRegex("\\/([^\\/]+)\\/([^\\/]+)")
-      .handler(this::routingRegularParam1);
-    router
-      .route("/routing/:param1/:param2/")
-      .handler(this::routingParam1);
-    router
-      .route("/routing/:param1-:param2/")
-      .handler(this::routingParam2);
+    router.route("/routes/exact-path").handler(this::routingExactPath);
+    router.route("/routes/begin-something/*").handler(this::routingBeginSomething);
+    router.route().pathRegex(".*reg").handler(this::routingRegularExpressions);
+    router.routeWithRegex(".*routes/reg-alt").handler(this::routingRegularExpressionsAlt);
+    router.routeWithRegex(".*routes/reg-params").pathRegex("\\/([^\\/]+)\\/([^\\/]+)").handler(this::routingRegularParam1);
+    router.route("/routes/:param1/:param2").handler(this::routingParam1);
+    router.route("/routes/:param1-:param2").handler(this::routingParam2);
 
     // Redirect to a new URL
-    router.route("/redirect/").handler(this::redirectURL);
+    router.route("/redirect/vertx/java-doc").handler(this::redirectURL);
 
     // Record temperature Data
-    router.route("/temp/").handler(this::getTemperatureData);
+//    router.route("/temp/").handler(this::getTemperatureData);
 
     // Start server on port 8888
     server
@@ -87,37 +71,6 @@ public class Server extends AbstractVerticle {
       )
       .onFailure(startPromise::fail);
 
-  }
-
-  // Method updates temperature randomly
-  private void updateTemperatureData(Long id) {
-    temp = temp+(random.nextGaussian() / 2.0d);
-    System.out.println(output+temp);
-
-    vertx.eventBus()
-      .publish("Temperature.updates", createPayload());
-  }
-
-  // Method to Record temperature Data
-  private void getTemperatureData(RoutingContext routingContext) {
-    System.out.println("Processing HTTP request from " +
-      routingContext.request().remoteAddress());
-    JsonObject payload = createPayload();
-    routingContext.response()
-      .putHeader("Content-type", "app/json")
-      .setStatusCode(200)
-      .end(payload.encodePrettily());
-  }
-
-  // Method to generate JSON payload with uuid, temperature and timestamp
-  private JsonObject createPayload() {
-    long millisec = System.currentTimeMillis();
-    SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd,yyyy HH:mm:ss");
-    Date date = new Date(millisec);
-    return new JsonObject()
-      .put("uuid", uuid)
-      .put("temperature", temp)
-      .put("timestamp", dateFormat.format(date));
   }
 
   // Method returns JSON response
@@ -266,5 +219,37 @@ public class Server extends AbstractVerticle {
   private void redirectURL(RoutingContext routingContext) {
     routingContext.redirect("https://vertx.io/docs/vertx-web/java/");
   }
+
+  // Unused methods
+//  // Method updates temperature randomly
+//  private void updateTemperatureData(Long id) {
+//    temp = temp+(random.nextGaussian() / 2.0d);
+//    System.out.println(output+temp);
+//
+//    vertx.eventBus()
+//      .publish("Temperature.updates", createPayload());
+//  }
+//
+//  // Method to Record temperature Data
+//  private void getTemperatureData(RoutingContext routingContext) {
+//    System.out.println("Processing HTTP request from " +
+//      routingContext.request().remoteAddress());
+//    JsonObject payload = createPayload();
+//    routingContext.response()
+//      .putHeader("Content-type", "app/json")
+//      .setStatusCode(200)
+//      .end(payload.encodePrettily());
+//  }
+//
+//  // Method to generate JSON payload with uuid, temperature and timestamp
+//  private JsonObject createPayload() {
+//    long millisec = System.currentTimeMillis();
+//    SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd,yyyy HH:mm:ss");
+//    Date date = new Date(millisec);
+//    return new JsonObject()
+//      .put("uuid", uuid)
+//      .put("temperature", temp)
+//      .put("timestamp", dateFormat.format(date));
+//  }
 }
 
