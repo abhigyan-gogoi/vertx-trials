@@ -1,12 +1,9 @@
-package org.pupu.vertx_trials;
+package org.pupu.vertx_trials.server;
 
-import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
-import io.vertx.core.json.JsonObject;
-import org.pupu.vertx_trials.server.Server;
 
-public class Main {
+public class ServerMain {
 
   public static void main(String[] args) {
     // Vertx vertx = Vertx.vertx();
@@ -30,11 +27,7 @@ public class Main {
     // Instances of eventBus() working across the network
     // Code using clustered evenBus()
     Vertx.clusteredVertx(new VertxOptions())
-      .onSuccess(vertx -> {
-        vertx.deployVerticle(new Server());
-      })
-      .onFailure(failure -> {
-        System.out.println("ERROR: "+failure);
-      });
+      .onSuccess(vertx -> vertx.deployVerticle(new Server()))
+      .onFailure(failure -> System.out.println("ERROR: "+failure));
   }
 }
