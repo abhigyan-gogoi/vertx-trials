@@ -8,18 +8,13 @@ import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.predicate.ResponsePredicate;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-
-public class Client extends AbstractVerticle {
+public class ClientRouteExact extends AbstractVerticle {
   private static final int httpPort = Integer.parseInt(System.getenv()
     .getOrDefault("HTTP_PORT", "8888"));
   @Override
   public void start(Promise<Void> startPromise) {
     // Create Vertx client instance
     WebClient client = WebClient.create(vertx);
-    // Method for client request
-//    clientRequest(client);
     // Client config
     client
       .get(httpPort, "localhost", "/routes/exact-path")
@@ -33,17 +28,13 @@ public class Client extends AbstractVerticle {
           // Safely decode JSON response object
           JsonObject body = response.bodyAsJsonObject();
           // Print Json object
+          System.out.println();
           System.out.println(body.toString());
+          System.out.println();
         } else {
           System.out.println("Error: "+res.cause().getMessage());
         }
+        client.close();
       });
   }
-//  private void clientRequest(WebClient client) {
-//    System.out.print("REST call (GET): ");
-//    // Enter data using BufferReader
-//    BufferedReader reader = new BufferedReader(
-//      new InputStreamReader(System.in));
-//
-//  }
 }
