@@ -1,13 +1,12 @@
 package org.pupu.vertx_trials.server;
 
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.MultiMap;
-import io.vertx.core.Promise;
+import io.vertx.core.*;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import org.pupu.vertx_trials.services.MongoPost;
 
 //import java.text.SimpleDateFormat;
 //import java.util.Date;
@@ -46,13 +45,23 @@ public class Server extends AbstractVerticle {
     router.route("/routes/exact-path").handler(this::routingExactPath);
     router.route("/routes/begin-something/*").handler(this::routingBeginSomething);
     router.route().pathRegex(".*reg").handler(this::routingRegularExpressions);
-    router.routeWithRegex(".*routes/reg-alt").handler(this::routingRegularExpressionsAlt);
-    router.routeWithRegex(".*routes/reg-params").pathRegex("\\/([^\\/]+)\\/([^\\/]+)").handler(this::routingRegularParam1);
     router.route("/routes/:param1/:param2").handler(this::routingParam1);
     router.route("/routes/:param1-:param2").handler(this::routingParam2);
+    router.routeWithRegex(".*routes/reg-alt")
+      .handler(this::routingRegularExpressionsAlt);
+    router.routeWithRegex(".*routes/reg-params")
+      .pathRegex("\\/([^\\/]+)\\/([^\\/]+)")
+      .handler(this::routingRegularParam1);
 
     // Redirect to a new URL
     router.route("/redirect/vertx/java-doc").handler(this::redirectURL);
+
+    // MongoDB routes
+    // GET MongoDB collection
+        router.route("/mongo/:DatabaseName/:CollectionName")
+      .handler(this::mongoGetCollection);
+    // POST an employee record to MongoDB
+    router.post("/mongo/:DatabaseName/:CollectionName").handler(this::mongoPost);
 
     // Record temperature Data
 //    router.route("/temp/").handler(this::getTemperatureData);
@@ -71,6 +80,44 @@ public class Server extends AbstractVerticle {
       )
       .onFailure(startPromise::fail);
 
+  }
+
+  private void mongoGetCollection(RoutingContext routingContext) {
+//    String DatabaseName = routingContext.pathParam("DatabaseName");
+//    String CollectionName = routingContext.pathParam("CollectionName");
+    // JSON response
+//    routingContext.json(
+//      new JsonObject()
+//        .put("Page", "POST request to MongoDB")
+//        .put("DatabaseName", DatabaseName)
+//        .put("CollectionName", CollectionName)
+//    );
+  }
+
+  private void mongoPost(RoutingContext routingContext) {
+    String uri = "mongodb://localhost:27017";
+    String DatabaseName = routingContext.pathParam("DatabaseName");
+    String CollectionName = routingContext.pathParam("CollectionName");
+    // JSON response
+//    routingContext.json(
+//      new JsonObject()
+//        .put("Page", "POST request to MongoDB")
+//        .put("DatabaseName", DatabaseName)
+//        .put("CollectionName", CollectionName)
+//    );
+    // Start a MongoClient which POSTs to specified DB and Collection
+    Vertx.clusteredVertx(new VertxOptions())
+      .onSuccess(vertx -> {
+        vertx.deployVerticle(new MongoPost(uri, DatabaseName, CollectionName));
+        routingContext.json(
+          new JsonObject()
+          .put("Page", "POST request to MongoDB")
+          .put("DatabaseName", DatabaseName)
+          .put("CollectionName", CollectionName)
+        );
+        vertx.close();
+      })
+      .onFailure(failure -> System.out.println("ERROR: "+failure));
   }
 
   // Method returns JSON response
