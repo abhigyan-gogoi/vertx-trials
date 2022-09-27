@@ -6,8 +6,10 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import org.pupu.vertx_trials.services.MongoDelete;
 import org.pupu.vertx_trials.services.MongoGetCollection;
 import org.pupu.vertx_trials.services.MongoPost;
+import org.pupu.vertx_trials.services.MongoPut;
 
 //import java.text.SimpleDateFormat;
 //import java.util.Date;
@@ -18,6 +20,7 @@ public class Server extends AbstractVerticle {
 //  private final String output = "Temperature recorded : ";
   private static final int httpPort = Integer.parseInt(System.getenv()
     .getOrDefault("HTTP_PORT", "8888"));
+  private static final String dbUri = "mongodb://localhost:27017";
 //  private final String uuid = UUID.randomUUID().toString();
 //  private double temp = 21.0;
 //  private final Random random = new Random();
@@ -63,6 +66,10 @@ public class Server extends AbstractVerticle {
       .handler(this::mongoGetCollection);
     // POST an employee record to MongoDB
     router.post("/mongo/:DatabaseName/:CollectionName").handler(this::mongoPost);
+    // DELETE an employee record in MongoDB
+    router.delete("/mongo/:DatabaseName/:CollectionName/:ID").handler(this::mongoDelete);
+    // PUT an employee record in MongoDB
+    router.put("/mongo/:DatabaseName/:CollectionName/:LastName").handler(this::mongoPut);
 
     // Record temperature Data
 //    router.route("/temp/").handler(this::getTemperatureData);
@@ -83,12 +90,39 @@ public class Server extends AbstractVerticle {
 
   }
 
+  private void mongoPut(RoutingContext routingContext) {
+    String DatabaseName = routingContext.pathParam("DatabaseName");
+    String CollectionName = routingContext.pathParam("CollectionName");
+    String LastName = routingContext.pathParam("LastName");
+    // Start a MongoClient which POSTs to specified DB and Collection
+    vertx.deployVerticle(new MongoPut(dbUri, DatabaseName, CollectionName, LastName));
+    routingContext.json(
+      new JsonObject()
+        .put("Page", "PUT request to MongoDB")
+        .put("DatabaseName", DatabaseName)
+        .put("CollectionName", CollectionName)
+    );
+  }
+
+  private void mongoDelete(RoutingContext routingContext) {
+    String DatabaseName = routingContext.pathParam("DatabaseName");
+    String CollectionName = routingContext.pathParam("CollectionName");
+    String ID = routingContext.pathParam("ID");
+    // Start a MongoClient which POSTs to specified DB and Collection
+    vertx.deployVerticle(new MongoDelete(dbUri, DatabaseName, CollectionName, ID));
+    routingContext.json(
+      new JsonObject()
+        .put("Page", "DELETE request to MongoDB")
+        .put("DatabaseName", DatabaseName)
+        .put("CollectionName", CollectionName)
+    );
+  }
+
   private void mongoGetCollection(RoutingContext routingContext) {
-    String uri = "mongodb://localhost:27017";
     String DatabaseName = routingContext.pathParam("DatabaseName");
     String CollectionName = routingContext.pathParam("CollectionName");
     // Start a MongoClient which GETs all records in specified DB Collection
-    vertx.deployVerticle(new MongoGetCollection(uri, DatabaseName, CollectionName));
+    vertx.deployVerticle(new MongoGetCollection(dbUri, DatabaseName, CollectionName));
     routingContext.json(
       new JsonObject()
         .put("Page", "GET request to MongoDB")
@@ -98,11 +132,10 @@ public class Server extends AbstractVerticle {
   }
 
   private void mongoPost(RoutingContext routingContext) {
-    String uri = "mongodb://localhost:27017";
     String DatabaseName = routingContext.pathParam("DatabaseName");
     String CollectionName = routingContext.pathParam("CollectionName");
     // Start a MongoClient which POSTs to specified DB and Collection
-    vertx.deployVerticle(new MongoPost(uri, DatabaseName, CollectionName));
+    vertx.deployVerticle(new MongoPost(dbUri, DatabaseName, CollectionName));
     routingContext.json(
       new JsonObject()
         .put("Page", "POST request to MongoDB")
