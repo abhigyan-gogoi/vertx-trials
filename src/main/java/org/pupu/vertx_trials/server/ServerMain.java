@@ -1,7 +1,11 @@
 package org.pupu.vertx_trials.server;
 
+import com.hazelcast.config.Config;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import io.vertx.core.spi.cluster.ClusterManager;
+import io.vertx.spi.cluster.hazelcast.ConfigUtil;
+import io.vertx.spi.cluster.hazelcast.HazelcastClusterManager;
 
 public class ServerMain {
 
@@ -23,10 +27,20 @@ public class ServerMain {
     //    System.out.println(message.body().encodePrettily());
     //  });
 
+    // Programmatic Configuration of Hazelcast cluster
+    Config hazelcastConfig = ConfigUtil.loadConfig();
+    // Set Cluster name
+    hazelcastConfig.setClusterName("my-cluster-name");
+    // Disable hazelcast logging
+    hazelcastConfig.setProperty("hazelcast.logging.type", "none");
+    // Set config to a cluster manager
+    ClusterManager mgr = new HazelcastClusterManager(hazelcastConfig);
+
     // Using clustered eventBus() allows us to have multiple
     // Instances of eventBus() working across the network
     // Code using clustered evenBus()
-    Vertx.clusteredVertx(new VertxOptions())
+    // Setting a configured cluster manager
+    Vertx.clusteredVertx(new VertxOptions().setClusterManager(mgr))
       .onSuccess(vertx -> vertx.deployVerticle(new Server()))
       .onFailure(failure -> System.out.println("ERROR: "+failure));
   }

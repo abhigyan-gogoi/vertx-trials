@@ -6,6 +6,7 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import org.pupu.vertx_trials.services.MongoGetCollection;
 import org.pupu.vertx_trials.services.MongoPost;
 
 //import java.text.SimpleDateFormat;
@@ -58,7 +59,7 @@ public class Server extends AbstractVerticle {
 
     // MongoDB routes
     // GET MongoDB collection
-        router.route("/mongo/:DatabaseName/:CollectionName")
+        router.get("/mongo/:DatabaseName/:CollectionName")
       .handler(this::mongoGetCollection);
     // POST an employee record to MongoDB
     router.post("/mongo/:DatabaseName/:CollectionName").handler(this::mongoPost);
@@ -83,41 +84,31 @@ public class Server extends AbstractVerticle {
   }
 
   private void mongoGetCollection(RoutingContext routingContext) {
-//    String DatabaseName = routingContext.pathParam("DatabaseName");
-//    String CollectionName = routingContext.pathParam("CollectionName");
-    // JSON response
-//    routingContext.json(
-//      new JsonObject()
-//        .put("Page", "POST request to MongoDB")
-//        .put("DatabaseName", DatabaseName)
-//        .put("CollectionName", CollectionName)
-//    );
+    String uri = "mongodb://localhost:27017";
+    String DatabaseName = routingContext.pathParam("DatabaseName");
+    String CollectionName = routingContext.pathParam("CollectionName");
+    // Start a MongoClient which GETs all records in specified DB Collection
+    vertx.deployVerticle(new MongoGetCollection(uri, DatabaseName, CollectionName));
+    routingContext.json(
+      new JsonObject()
+        .put("Page", "GET request to MongoDB")
+        .put("DatabaseName", DatabaseName)
+        .put("CollectionName", CollectionName)
+    );
   }
 
   private void mongoPost(RoutingContext routingContext) {
     String uri = "mongodb://localhost:27017";
     String DatabaseName = routingContext.pathParam("DatabaseName");
     String CollectionName = routingContext.pathParam("CollectionName");
-    // JSON response
-//    routingContext.json(
-//      new JsonObject()
-//        .put("Page", "POST request to MongoDB")
-//        .put("DatabaseName", DatabaseName)
-//        .put("CollectionName", CollectionName)
-//    );
     // Start a MongoClient which POSTs to specified DB and Collection
-    Vertx.clusteredVertx(new VertxOptions())
-      .onSuccess(vertx -> {
-        vertx.deployVerticle(new MongoPost(uri, DatabaseName, CollectionName));
-        routingContext.json(
-          new JsonObject()
-          .put("Page", "POST request to MongoDB")
-          .put("DatabaseName", DatabaseName)
-          .put("CollectionName", CollectionName)
-        );
-        vertx.close();
-      })
-      .onFailure(failure -> System.out.println("ERROR: "+failure));
+    vertx.deployVerticle(new MongoPost(uri, DatabaseName, CollectionName));
+    routingContext.json(
+      new JsonObject()
+        .put("Page", "POST request to MongoDB")
+        .put("DatabaseName", DatabaseName)
+        .put("CollectionName", CollectionName)
+    );
   }
 
   // Method returns JSON response

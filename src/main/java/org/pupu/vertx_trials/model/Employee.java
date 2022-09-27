@@ -3,7 +3,7 @@ package org.pupu.vertx_trials.model;
 import io.vertx.core.json.JsonObject;
 
 public class Employee {
-  private String _id;
+  private String employee_id;
   private String first_name;
   private String last_name;
 
@@ -12,14 +12,14 @@ public class Employee {
   }
 
   public void generateEmployee(){
-    this._id = "ZL099";
+    this.employee_id = "ZL099";
     this.first_name = "Abhigyan";
     this.last_name = "Gogoi";
   }
 
   public JsonObject getEmployeeJson() {
     return new JsonObject()
-      .put("ID", this._id)
+      .put("Employee_ID", this.employee_id)
       .put("First_name", this.first_name)
       .put("Last_name", this.last_name)
       ;
