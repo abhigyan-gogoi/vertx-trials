@@ -29,6 +29,7 @@ public class MongoGetCollection extends AbstractVerticle {
     MongoClient client = MongoClient.createShared(vertx, mongoConfig);
     // Create an empty JSON Object
     // For finding all records in collection
+    // Specify Field for specific record
     JsonObject emptyJson = new JsonObject();
     // Send GET request to Mongo DB server
     // Use find method in MongoClient

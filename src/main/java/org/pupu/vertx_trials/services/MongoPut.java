@@ -11,14 +11,16 @@ public class MongoPut extends AbstractVerticle {
   private final String db;
   // Mongo Database Collection Name
   private final String cl;
-  private final String last_name;
+  private final String _id;
+  private final String new_id;
 
   public MongoPut
-    (String uri, String db, String cl, String last_name) {
+    (String uri, String db, String cl, String _id, String new_id) {
     this.uri = uri;
     this.db = db;
     this.cl = cl;
-    this.last_name = last_name;
+    this._id = _id;
+    this.new_id = new_id;
   }
 
 
@@ -33,19 +35,19 @@ public class MongoPut extends AbstractVerticle {
     MongoClient client = MongoClient.createShared(vertx, mongoConfig);
     // Create JSON Object for query
     JsonObject query = new JsonObject()
-      .put("Last_name", this.last_name);
+      .put("_id", this._id);
     // Create JSON Object to update Last Name
     JsonObject update = new JsonObject()
       .put("$set", new JsonObject()
-        .put("Last_name", "Kumar"));
+        .put("_id", this.new_id));
     // Send POST request to Mongo DB server
     // Use insert method in MongoClient
     client.updateCollection(this.cl, query, update, res -> {
       if (res.succeeded()){
-        System.out.println("Employee record Updated from " + this.cl + " Collection");
+        System.out.println("Employee "+this._id+" Updated to " + this.new_id);
       } else {
         // Failure if record exists
-        System.out.println("Employee record does not exist in " + this.cl + " Collection");
+        System.out.println("Employee "+this._id+" does not exist in " + this.cl + " Collection");
       }
     });
   }

@@ -10,7 +10,7 @@ public class MongoPutMain {
     Vertx.clusteredVertx(new VertxOptions())
       .onSuccess(vertx -> {
         vertx.deployVerticle(new MongoPut
-          ("mongodb://localhost:27017", "people", "employees", "employee_id"));
+          ("mongodb://localhost:27017", "people", "employees", "_id", "new_id"));
         vertx.close();
       })
       .onFailure(failure -> System.out.println("ERROR: "+failure));

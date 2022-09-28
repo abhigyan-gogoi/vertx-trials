@@ -3,7 +3,7 @@ package org.pupu.vertx_trials.services;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClient;
-import org.pupu.vertx_trials.model.Employee;
+import org.pupu.vertx_trials.model.EmployeeImpl;
 
 public class MongoPost extends AbstractVerticle {
   // URI for local Mongo DataBase
@@ -29,15 +29,16 @@ public class MongoPost extends AbstractVerticle {
     // Create MongoClient
     MongoClient client = MongoClient.createShared(vertx, mongoConfig);
     // Create an employee instance and return JSON Object
-    JsonObject employeeJson = new Employee().getEmployeeJson();
+    EmployeeImpl employeeImpl = new EmployeeImpl();
+    JsonObject employeeJson = employeeImpl.getEmployeeJson();
     // Send POST request to Mongo DB server
     // Use insert method in MongoClient
     client.insert(this.cl, employeeJson, res -> {
       if (res.succeeded()){
-        System.out.println("Employee record stored in employees Collection");
+        System.out.println("Employee "+ employeeImpl.get_id()+" stored in employees Collection");
       } else {
         // Failure if record exists
-        System.out.println("Employee record already exists in employees Collection");
+        System.out.println("Employee "+ employeeImpl.get_id()+" already exists in employees Collection");
       }
     });
   }

@@ -6,10 +6,9 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import org.pupu.vertx_trials.services.MongoDelete;
-import org.pupu.vertx_trials.services.MongoGetCollection;
-import org.pupu.vertx_trials.services.MongoPost;
-import org.pupu.vertx_trials.services.MongoPut;
+import org.pupu.vertx_trials.model.Database;
+import org.pupu.vertx_trials.service.RouteGenHandler;
+import org.pupu.vertx_trials.services.*;
 
 //import java.text.SimpleDateFormat;
 //import java.util.Date;
@@ -28,48 +27,52 @@ public class Server extends AbstractVerticle {
   @Override
   public void start(Promise<Void> startPromise) {
 //    vertx.setPeriodic(2000, this::updateTemperatureData);
+    // Create Database object
+    Database db = new Database();
+    db.setDbUri(dbUri);
 
     // Create HTTP server
     HttpServer server = vertx.createHttpServer();
-    // Create a router
+    // Create a router context handler using RouteGenHandler interface
     Router router = Router.router(vertx);
+    RouteGenHandler.create(db, vertx, router);
 
-    // Mount handler for specific incoming requests
-    // At '/' path and HTTP method
-    router.route("/").handler(this::landingHandler);
-
-    // Setup and Calling next() in handler
-    router.route("/routes/next-handler").handler(this::nextHandler);
-    // Calling next() in handler
-    router.route("/routes/next-handler").handler(this::nextNextHandler);
-    // Calling end() in handler
-    router.route("/routes/next-handler").handler(this::nextEndHandler);
-
-    // Different Routing methods
-    router.route("/routes/exact-path").handler(this::routingExactPath);
-    router.route("/routes/begin-something/*").handler(this::routingBeginSomething);
-    router.route().pathRegex(".*reg").handler(this::routingRegularExpressions);
-    router.route("/routes/:param1/:param2").handler(this::routingParam1);
-    router.route("/routes/:param1-:param2").handler(this::routingParam2);
-    router.routeWithRegex(".*routes/reg-alt")
-      .handler(this::routingRegularExpressionsAlt);
-    router.routeWithRegex(".*routes/reg-params")
-      .pathRegex("\\/([^\\/]+)\\/([^\\/]+)")
-      .handler(this::routingRegularParam1);
-
-    // Redirect to a new URL
-    router.route("/redirect/vertx/java-doc").handler(this::redirectURL);
-
-    // MongoDB routes
-    // GET MongoDB collection
-        router.get("/mongo/:DatabaseName/:CollectionName")
-      .handler(this::mongoGetCollection);
-    // POST an employee record to MongoDB
-    router.post("/mongo/:DatabaseName/:CollectionName").handler(this::mongoPost);
-    // DELETE an employee record in MongoDB
-    router.delete("/mongo/:DatabaseName/:CollectionName/:ID").handler(this::mongoDelete);
-    // PUT an employee record in MongoDB
-    router.put("/mongo/:DatabaseName/:CollectionName/:LastName").handler(this::mongoPut);
+//    // Mount handler for specific incoming requests
+//    // At '/' path and HTTP method
+//    router.route("/").handler(this::landingHandler);
+//
+//    // Setup and Calling next() in handler
+//    router.route("/routes/next-handler").handler(this::nextHandler);
+//    // Calling next() in handler
+//    router.route("/routes/next-handler").handler(this::nextNextHandler);
+//    // Calling end() in handler
+//    router.route("/routes/next-handler").handler(this::nextEndHandler);
+//    // Different Routing methods
+//    router.route("/routes/exact-path").handler(this::routingExactPath);
+//    router.route("/routes/begin-something/*").handler(this::routingBeginSomething);
+//    router.route().pathRegex(".*reg").handler(this::routingRegularExpressions);
+//    router.route("/routes/:param1/:param2").handler(this::routingParam1);
+//    router.route("/routes/:param1-:param2").handler(this::routingParam2);
+//    router.routeWithRegex(".*routes/reg-alt")
+//      .handler(this::routingRegularExpressionsAlt);
+//    router.routeWithRegex(".*routes/reg-params")
+//      .pathRegex("\\/([^\\/]+)\\/([^\\/]+)")
+//      .handler(this::routingRegularParam1);
+//
+//    // Redirect to a new URL
+//    router.route("/redirect/vertx/java-doc").handler(this::redirectURL);
+//
+//    // MongoDB routes
+//    // GET all MongoDB collections
+//    router.get("/mongo/all-collections/:DatabaseName").handler(this::mongoGetAllCollections);
+//    // GET a MongoDB collection
+//        router.get("/mongo/:DatabaseName/:CollectionName").handler(this::mongoGetCollection);
+//    // POST an employee record to MongoDB
+//    router.post("/mongo/:DatabaseName/:CollectionName").handler(this::mongoPost);
+//    // DELETE an employee record in MongoDB
+//    router.delete("/mongo/:DatabaseName/:CollectionName/:ID").handler(this::mongoDelete);
+//    // PUT an employee record in MongoDB
+//    router.put("/mongo/:DatabaseName/:CollectionName/:ID/:NewID").handler(this::mongoPut);
 
     // Record temperature Data
 //    router.route("/temp/").handler(this::getTemperatureData);
@@ -90,12 +93,24 @@ public class Server extends AbstractVerticle {
 
   }
 
+  private void mongoGetAllCollections(RoutingContext routingContext) {
+    String DatabaseName = routingContext.pathParam("DatabaseName");
+    // Start a MongoClient which POSTs to specified DB and Collection
+    vertx.deployVerticle(new MongoGetAllCollections(dbUri, DatabaseName));
+    routingContext.json(
+      new JsonObject()
+        .put("Page", "GET request for all MongoDB Collections")
+        .put("DatabaseName", DatabaseName)
+    );
+  }
+
   private void mongoPut(RoutingContext routingContext) {
     String DatabaseName = routingContext.pathParam("DatabaseName");
     String CollectionName = routingContext.pathParam("CollectionName");
-    String LastName = routingContext.pathParam("LastName");
+    String ID = routingContext.pathParam("ID");
+    String NewID = routingContext.pathParam("NewID");
     // Start a MongoClient which POSTs to specified DB and Collection
-    vertx.deployVerticle(new MongoPut(dbUri, DatabaseName, CollectionName, LastName));
+    vertx.deployVerticle(new MongoPut(dbUri, DatabaseName, CollectionName, ID, NewID));
     routingContext.json(
       new JsonObject()
         .put("Page", "PUT request to MongoDB")
