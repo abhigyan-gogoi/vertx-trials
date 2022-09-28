@@ -3,9 +3,7 @@ package org.pupu.vertx_trials.server;
 import com.hazelcast.config.Config;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
-import io.vertx.core.spi.cluster.ClusterManager;
 import io.vertx.spi.cluster.hazelcast.ConfigUtil;
-import io.vertx.spi.cluster.hazelcast.HazelcastClusterManager;
 
 public class ServerMain {
 
@@ -34,13 +32,16 @@ public class ServerMain {
     // Disable hazelcast logging
     hazelcastConfig.setProperty("hazelcast.logging.type", "none");
     // Set config to a cluster manager
-    ClusterManager mgr = new HazelcastClusterManager(hazelcastConfig);
+    // ClusterManager mgr = new HazelcastClusterManager(hazelcastConfig);
 
     // Using clustered eventBus() allows us to have multiple
     // Instances of eventBus() working across the network
     // Code using clustered evenBus()
     // Setting a configured cluster manager
-    Vertx.clusteredVertx(new VertxOptions().setClusterManager(mgr))
+//    Vertx.clusteredVertx(new VertxOptions().setClusterManager(mgr))
+//      .onSuccess(vertx -> vertx.deployVerticle(new Server()))
+//      .onFailure(failure -> System.out.println("ERROR: "+failure));
+    Vertx.clusteredVertx(new VertxOptions())
       .onSuccess(vertx -> vertx.deployVerticle(new Server()))
       .onFailure(failure -> System.out.println("ERROR: "+failure));
   }
