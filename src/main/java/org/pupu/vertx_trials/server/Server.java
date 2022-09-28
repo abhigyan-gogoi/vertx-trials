@@ -26,13 +26,11 @@ public class Server extends AbstractVerticle {
     // Create Database object
     Database db = new Database();
     db.setDbUri(dbUri);
-
     // Create HTTP server
     HttpServer server = vertx.createHttpServer();
     // Create a router context handler using RouteGenHandler interface
     Router router = Router.router(vertx);
     RouteGenHandler.create(db, router);
-
     server
       // Router to handle every request
       .requestHandler(router)

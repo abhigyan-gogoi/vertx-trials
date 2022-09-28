@@ -53,10 +53,8 @@ public class RouteGenHandlerImpl implements RouteGenHandler{
     this.db.setDatabaseName(routingContext.pathParam("DatabaseName"));
     this.db.setCollectionName(routingContext.pathParam("CollectionName"));
     this.employee.set_id(routingContext.pathParam("ID"));
-    // TODO
-    // Unused
     String NewID = routingContext.pathParam("NewID");
-    this.employee.getMongoDao().updateRecord(this.db, this.employee.getEmployeeJson());
+    this.employee.getMongoDao().updateRecord(this.db, this.employee.getEmployeeJson(), NewID);
     routingContext.json(
       new JsonObject()
         .put("Page", "POST request to MongoDB")
@@ -70,11 +68,12 @@ public class RouteGenHandlerImpl implements RouteGenHandler{
     this.db.setCollectionName(routingContext.pathParam("CollectionName"));
     this.employee.set_id(routingContext.pathParam("ID"));
     this.employee.getMongoDao().deleteRecord(this.db, this.employee.getEmployeeJson());
+    routingContext.json(
       new JsonObject()
         .put("Page", "DELETE request to MongoDB")
         .put("DatabaseName", this.db.getDatabaseName())
         .put("CollectionName", this.db.getCollectionName())
-      ;
+    );
   }
 
   private void mongoPost(RoutingContext routingContext) {

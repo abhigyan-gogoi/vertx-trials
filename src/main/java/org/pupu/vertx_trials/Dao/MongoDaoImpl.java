@@ -81,7 +81,7 @@ public class MongoDaoImpl implements MongoDao{
   }
 
   @Override
-  public void updateRecord(Database db, JsonObject employeeJson) {
+  public void updateRecord(Database db, JsonObject employeeJson, String NewID) {
     // Create config for mongo database connection
     JsonObject mongoConfig = new JsonObject()
       .put("connection_uri", db.getDbUri())
@@ -91,20 +91,18 @@ public class MongoDaoImpl implements MongoDao{
     MongoClient client = MongoClient.createShared(Vertx.vertx(), mongoConfig);
     // Create JSON Object for query
     JsonObject query = new JsonObject()
-      .put("_id", employeeJson.getString("_id"));
+      .put("_id", employeeJson.getString("_id"))
+      ;
     // Create JSON Object to update Last Name
-    // TODO
-    // employeeJson.getString("new_id") and ZL101
     JsonObject update = new JsonObject()
-      .put("$set", new JsonObject()
-        .put("_id", "ZL101"));
+      .put("$set", new JsonObject().put("_id", NewID))
+      ;
     // Send POST request to Mongo DB server
-    // Use insert method in MongoClient
+    // Use updateCollection method in MongoClient
     client.updateCollection(db.getCollectionName(), query, update, res -> {
       if (res.succeeded()){
-        System.out.println("Employee "+employeeJson.getString("_id")+" Updated to " + "ZL101");
+        System.out.println("Employee "+employeeJson.getString("_id")+" Updated to " + NewID);
       } else {
-        // Failure if record exists
         System.out.println("Employee "+employeeJson.getString("_id")+" does not exist in " + db.getCollectionName() + " Collection");
       }
     });

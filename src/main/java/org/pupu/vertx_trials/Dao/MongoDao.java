@@ -11,7 +11,7 @@ public interface MongoDao {
 
   void deleteRecord(Database db, JsonObject employeeJson);
 
-  void updateRecord(Database db, JsonObject employeeJson);
+  void updateRecord(Database db, JsonObject employeeJson, String NewID);
 
   void showCollection(Database db);
 
