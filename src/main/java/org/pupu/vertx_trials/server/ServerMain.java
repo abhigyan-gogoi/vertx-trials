@@ -1,9 +1,9 @@
 package org.pupu.vertx_trials.server;
 
-import com.hazelcast.config.Config;
+//import com.hazelcast.config.Config;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
-import io.vertx.spi.cluster.hazelcast.ConfigUtil;
+//import io.vertx.spi.cluster.hazelcast.ConfigUtil;
 
 public class ServerMain {
 
@@ -26,11 +26,11 @@ public class ServerMain {
     //  });
 
     // Programmatic Configuration of Hazelcast cluster
-    Config hazelcastConfig = ConfigUtil.loadConfig();
+//    Config hazelcastConfig = ConfigUtil.loadConfig();
     // Set Cluster name
-    hazelcastConfig.setClusterName("my-cluster-name");
+//    hazelcastConfig.setClusterName("my-cluster-name");
     // Disable hazelcast logging
-    hazelcastConfig.setProperty("hazelcast.logging.type", "none");
+//    hazelcastConfig.setProperty("hazelcast.logging.type", "none");
     // Set config to a cluster manager
     // ClusterManager mgr = new HazelcastClusterManager(hazelcastConfig);
 
