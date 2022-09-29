@@ -40,7 +40,7 @@ public class RouteGenHandlerImpl implements RouteGenHandler{
     router.get("/mongo/:DatabaseName/:CollectionName").handler(this::mongoGetCollection);
     router.post("/mongo/:DatabaseName/:CollectionName").handler(this::mongoPost);
     router.delete("/mongo/:DatabaseName/:CollectionName/:ID").handler(this::mongoDelete);
-    router.put("/mongo/:DatabaseName/:CollectionName/:ID/:NewID").handler(this::mongoPut);
+    router.put("/mongo/:DatabaseName/:CollectionName/:LastName/:NewLastName").handler(this::mongoPut);
 
   }
 
@@ -52,9 +52,9 @@ public class RouteGenHandlerImpl implements RouteGenHandler{
   private void mongoPut(RoutingContext routingContext) {
     this.db.setDatabaseName(routingContext.pathParam("DatabaseName"));
     this.db.setCollectionName(routingContext.pathParam("CollectionName"));
-    this.employee.set_id(routingContext.pathParam("ID"));
-    String NewID = routingContext.pathParam("NewID");
-    this.employee.getMongoDao().updateRecord(this.db, this.employee.getEmployeeJson(), NewID);
+    this.employee.setLast_name(routingContext.pathParam("LastName"));
+    String NewLastName = routingContext.pathParam("NewLastName");
+    this.employee.getMongoDao().updateRecord(this.db, this.employee.getEmployeeJson(), NewLastName);
     routingContext.json(
       new JsonObject()
         .put("Page", "POST request to MongoDB")
