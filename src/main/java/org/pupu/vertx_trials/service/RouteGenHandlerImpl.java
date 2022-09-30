@@ -38,7 +38,8 @@ public class RouteGenHandlerImpl implements RouteGenHandler{
     // MongoDB routes
     router.get("/mongo/all-collections/:DatabaseName").handler(this::mongoGetAllCollections);
     router.get("/mongo/:DatabaseName/:CollectionName").handler(this::mongoGetCollection);
-    router.post("/mongo/:DatabaseName/:CollectionName").handler(this::mongoPost);
+    router.get("/mongo/:DatabaseName/:CollectionName/:ID").handler(this::mongoGet);
+    router.post("/mongo/:DatabaseName/:CollectionName/:ID").handler(this::mongoPost);
     router.delete("/mongo/:DatabaseName/:CollectionName/:ID").handler(this::mongoDelete);
     router.put("/mongo/:DatabaseName/:CollectionName/:LastName/:NewLastName").handler(this::mongoPut);
 
@@ -47,6 +48,19 @@ public class RouteGenHandlerImpl implements RouteGenHandler{
   @Override
   public void handle(RoutingContext routingContext) {
     router.handleContext(routingContext);
+  }
+
+  private void mongoGet(RoutingContext routingContext) {
+    this.db.setDatabaseName(routingContext.pathParam("DatabaseName"));
+    this.db.setCollectionName(routingContext.pathParam("CollectionName"));
+    this.employee.set_id(routingContext.pathParam("ID"));
+    this.employee.getMongoDao().showRecord(this.db, employee.getEmployeeJson());
+    routingContext.json(
+      new JsonObject()
+        .put("Page", "GET request to MongoDB")
+        .put("DatabaseName", this.db.getDatabaseName())
+        .put("CollectionName", this.db.getCollectionName())
+    );
   }
 
   private void mongoPut(RoutingContext routingContext) {
