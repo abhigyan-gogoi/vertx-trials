@@ -1,20 +1,25 @@
-package org.pupu.vertx_trials.Dao;
+package org.pupu.vertx_trials.dao;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClient;
 import org.pupu.vertx_trials.model.Database;
 
-public class MongoDaoImpl implements MongoDao{
-  @Override
-  public void insertRecord(Database db, JsonObject employeeJson) {
+public class MongoDaoImpl implements MongoDao {
+  private JsonObject dbConfig;
+
+  public void createMongoConfig(Database db) {
     // Create JSON object for connecting to MongoDB server
-    JsonObject dbConfig = new JsonObject()
+    this.dbConfig = new JsonObject()
       .put("connection_uri", db.getDbUri())
       .put("db_name", db.getDatabaseName())
       ;
+  }
+
+  @Override
+  public void insertRecord(Database db, JsonObject employeeJson) {
     // Create vertx mongo client to insert new employee record
-    MongoClient client = MongoClient.createShared(Vertx.vertx(), dbConfig);
+    MongoClient client = MongoClient.createShared(Vertx.vertx(), this.dbConfig);
     // Execute the insert query in MongoDb
     client.insert(db.getCollectionName(), employeeJson, res ->{
       if (res.succeeded()){
@@ -28,43 +33,49 @@ public class MongoDaoImpl implements MongoDao{
 
   @Override
   public void showRecord(Database db, JsonObject employeeJson) {
-    // TODO
-    // Change to find specific record EMPTY query
-    // Create config for mongo database connection
-    JsonObject mongoConfig = new JsonObject()
-      .put("connection_uri", db.getDbUri())
-      .put("db_name", db.getDatabaseName())
-      ;
+    // Create MongoClient config
+    createMongoConfig(db);
     // Create MongoClient
-    MongoClient client = MongoClient.createShared(Vertx.vertx(), mongoConfig);
-    // Create an empty JSON Object
-    // For finding all records in collection
-    // Specify Field for specific record
-    JsonObject emptyJson = new JsonObject();
+    MongoClient client = MongoClient.createShared(Vertx.vertx(), this.dbConfig);
+    // Create JSON Object for query
+    JsonObject query = new JsonObject()
+      .put("_id", employeeJson.getString("_id"));
+    // Create JSON Object for fields
+    JsonObject fields = new JsonObject();
+    // Create Future object
+//    Future future = Future.future(res -> {
+//      client.findOne(db.getCollectionName(), query, fields);
+//    }).onSuccess(res -> {
+//
+//    })
+//      ;
     // Send GET request to Mongo DB server
     // Use find method in MongoClient
-    client.find(db.getCollectionName(), emptyJson, res -> {
-      if (res.succeeded()){
-        for (JsonObject json : res.result()) {
-          System.out.println(json.encodePrettily());
-        }
-        System.out.println("All Employee records displayed");
-      } else {
-        // Failure
-        System.out.println("Failed to read Collection");
-      }
-    });
+
+//    client.find(db.getCollectionName(), query, res -> {
+//      if (res.succeeded()){
+//        for (JsonObject json : res.result()) {
+//          System.out.println(json.encodePrettily());
+//        }
+//        System.out.println("Employee record displayed");
+//      } else {
+//        // Failure
+//        System.out.println("Failed to read Record from DB");
+//      }
+//    });
+    client.findOne(db.getCollectionName(), query, fields)
+      .onSuccess(res -> {
+        System.out.println(res.encodePrettily());
+      })
+      .onFailure(err -> {
+        System.out.println(err.getMessage());
+      });
   }
 
   @Override
   public void deleteRecord(Database db, JsonObject employeeJson) {
-    // Create config for mongo database connection
-    JsonObject mongoConfig = new JsonObject()
-      .put("connection_uri", db.getDbUri())
-      .put("db_name", db.getDatabaseName())
-      ;
     // Create MongoClient
-    MongoClient client = MongoClient.createShared(Vertx.vertx(), mongoConfig);
+    MongoClient client = MongoClient.createShared(Vertx.vertx(), this.dbConfig);
     // Create JSON Object for query
     JsonObject query = new JsonObject()
       .put("_id", employeeJson.getString("_id"));
@@ -82,20 +93,12 @@ public class MongoDaoImpl implements MongoDao{
 
   @Override
   public void updateRecord(Database db, JsonObject employeeJson, String NewLastName) {
-    // Create config for mongo database connection
-    JsonObject mongoConfig = new JsonObject()
-      .put("connection_uri", db.getDbUri())
-      .put("db_name", db.getDatabaseName())
-      ;
     // Create MongoClient
-    MongoClient client = MongoClient.createShared(Vertx.vertx(), mongoConfig);
+    MongoClient client = MongoClient.createShared(Vertx.vertx(), this.dbConfig);
     // Create JSON Object for query
     JsonObject query = new JsonObject()
       .put("Last_name", employeeJson.getString("Last_name"))
       ;
-//    JsonObject query = new JsonObject()
-//      .put("_id", "ZLO99")
-//      ;
     // Create JSON Object to update Last Name
     JsonObject update = new JsonObject().put("$set", new JsonObject().put("Last_name", NewLastName));
     // Send POST request to Mongo DB server
@@ -111,13 +114,8 @@ public class MongoDaoImpl implements MongoDao{
 
   @Override
   public void showCollection(Database db) {
-    // Create config for mongo database connection
-    JsonObject mongoConfig = new JsonObject()
-      .put("connection_uri", db.getDbUri())
-      .put("db_name", db.getDatabaseName())
-      ;
     // Create MongoClient
-    MongoClient client = MongoClient.createShared(Vertx.vertx(), mongoConfig);
+    MongoClient client = MongoClient.createShared(Vertx.vertx(), this.dbConfig);
     // Create an empty JSON Object
     // For finding all records in collection
     // Specify Field for specific record
@@ -139,13 +137,8 @@ public class MongoDaoImpl implements MongoDao{
 
   @Override
   public void showDatabaseCollections(Database db) {
-    // Create config for mongo database connection
-    JsonObject mongoConfig = new JsonObject()
-      .put("connection_uri", db.getDbUri())
-      .put("db_name", db.getDatabaseName())
-      ;
     // Create MongoClient
-    MongoClient client = MongoClient.createShared(Vertx.vertx(), mongoConfig);
+    MongoClient client = MongoClient.createShared(Vertx.vertx(), this.dbConfig);
     // getCollections method gets all collections in DB
     // dropCollection("collection-name", AsyncHandler) to delete collection
     // CAUTION!! Deletes all records within the collection

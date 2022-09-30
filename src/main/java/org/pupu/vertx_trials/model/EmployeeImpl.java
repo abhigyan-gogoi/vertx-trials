@@ -1,8 +1,8 @@
 package org.pupu.vertx_trials.model;
 
 import io.vertx.core.json.JsonObject;
-import org.pupu.vertx_trials.Dao.MongoDao;
-import org.pupu.vertx_trials.Dao.MongoDaoImpl;
+import org.pupu.vertx_trials.dao.MongoDao;
+import org.pupu.vertx_trials.dao.MongoDaoImpl;
 
 public class EmployeeImpl implements EmployeeInterface{
   private final MongoDao mongoDao;
