@@ -1,9 +1,12 @@
 package org.pupu.vertx_trials.dao;
 
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClient;
 import org.pupu.vertx_trials.model.Database;
+import org.pupu.vertx_trials.model.NewEmployee;
 
 public class MongoDaoImpl implements MongoDao {
   private JsonObject dbConfig;
@@ -65,11 +68,56 @@ public class MongoDaoImpl implements MongoDao {
 //    });
     client.findOne(db.getCollectionName(), query, fields)
       .onSuccess(res -> {
+        // Use service class
         System.out.println(res.encodePrettily());
       })
       .onFailure(err -> {
         System.out.println(err.getMessage());
       });
+  }
+
+  @Override
+  public Future<JsonObject> showRecordJson(Database db, NewEmployee employee) {
+    // Create MongoClient config
+    createMongoConfig(db);
+    // Create MongoClient
+    MongoClient client = MongoClient.createShared(Vertx.vertx(), this.dbConfig);
+    // Create JSON Object for query
+    JsonObject query = new JsonObject()
+      .put("_id", employee.get_id());
+    // Create JSON Object for fields
+    JsonObject fields = new JsonObject();
+    // Create Future object
+//    Future future = Future.future(res -> {
+//      client.findOne(db.getCollectionName(), query, fields);
+//    }).onSuccess(res -> {
+//
+//    })
+//      ;
+    // Send GET request to Mongo DB server
+    // Use find method in MongoClient
+
+//    client.find(db.getCollectionName(), query, res -> {
+//      final JsonArray response = new JsonArray();
+//      if (res.succeeded()){
+//        for (JsonObject json : res.result()) {
+//          System.out.println(json.encodePrettily());
+//          response.add(json);
+//        }
+//        System.out.println("Employee record displayed");
+//      } else {
+//        // Failure
+//        System.out.println("Failed to read Record from DB");
+//      }
+//    });
+    return client.findOne(db.getCollectionName(), query, fields);
+//      .onSuccess(res -> {
+//        // Use service class
+//        System.out.println(res.encodePrettily());
+//      })
+//      .onFailure(err -> {
+//        System.out.println(err.getMessage());
+//      });
   }
 
   @Override

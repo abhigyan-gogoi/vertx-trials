@@ -1,5 +1,7 @@
 package org.pupu.vertx_trials.service;
 
-public class Verticle {
+import io.vertx.core.AbstractVerticle;
+
+public class Verticle extends AbstractVerticle {
 
 }

@@ -1,22 +1,25 @@
 package org.pupu.vertx_trials.service;
 
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import org.pupu.vertx_trials.model.Database;
-import org.pupu.vertx_trials.model.EmployeeImpl;
-import org.pupu.vertx_trials.model.EmployeeInterface;
+import org.pupu.vertx_trials.model.*;
 
 public class RouteGenHandlerImpl implements RouteGenHandler{
 
   private final Router router;
   private final Database db;
   private final EmployeeInterface employee;
+  private EmployeeService employeeService;
+  private NewEmployee newEmployee;
 
   public RouteGenHandlerImpl(Database db, Router router){
     this.router = router;
     this.db = db;
     this.employee = new EmployeeImpl();
+    this.newEmployee = new NewEmployeeImpl();
+    this.employeeService = new EmployeeServiceImpl();
 //    // Mount handler for specific incoming requests
 //    router.route("/").handler(this::landingHandler);
 //    // Setup and Calling next() in handler
@@ -58,13 +61,22 @@ public class RouteGenHandlerImpl implements RouteGenHandler{
     this.db.setCollectionName(routingContext.pathParam("CollectionName"));
     this.employee.set_id(routingContext.pathParam("ID"));
 //    JsonObject output = new JsonObject();
-    this.employee.getMongoDao().showRecord(this.db, employee.getEmployeeJson());
-    routingContext.json(
-      new JsonObject()
-        .put("Page", "GET request to MongoDB")
-        .put("DatabaseName", this.db.getDatabaseName())
-        .put("CollectionName", this.db.getCollectionName())
-    );
+//    this.employee.getMongoDao().showRecord(this.db, employee.getEmployeeJson());
+    this.employeeService.showEmployee(this.db, this.newEmployee, routingContext)
+      .map(res -> new JsonArray().add(res))
+      .onSuccess(res -> {
+        System.out.println("IN HERE\nPath: "+routingContext.normalizedPath());
+        System.out.println("RESPONSE: "+res.encodePrettily());
+        routingContext.response().end(res.encodePrettily());
+      })
+    ;
+//    routingContext.json(
+//      new JsonObject()
+//        .put("Page", "GET request to MongoDB")
+//        .put("DatabaseName", this.db.getDatabaseName())
+//        .put("CollectionName", this.db.getCollectionName())
+////        .put("JSON String", this.employeeService.getResponse().toString())
+//    );
   }
 
   private void mongoPut(RoutingContext routingContext) {
