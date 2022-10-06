@@ -1,8 +1,6 @@
 package org.pupu.vertx_trials.model;
 
 import io.vertx.core.json.JsonObject;
-import org.pupu.vertx_trials.dao.MongoDao;
-import org.pupu.vertx_trials.dao.MongoDaoImpl;
 
 public class NewEmployeeImpl implements NewEmployee{
   private String _id;
@@ -13,6 +11,12 @@ public class NewEmployeeImpl implements NewEmployee{
     this._id = "ZL099";
     this.first_name = "Abhigyan";
     this.last_name = "Gogoi";
+  }
+
+  public NewEmployeeImpl(String _id, String first_name, String last_name) {
+    this._id = _id;
+    this.first_name = first_name;
+    this.last_name = last_name;
   }
 
   @Override

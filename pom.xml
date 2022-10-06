@@ -19,7 +19,7 @@
     <vertx.version>4.3.4-SNAPSHOT</vertx.version>
     <junit-jupiter.version>5.7.0</junit-jupiter.version>
 
-    <main.verticle>org.pupu.vertx_trials.server.Server</main.verticle>
+    <main.verticle>org.pupu.vertx_trials.service.ServerVerticle</main.verticle>
     <launcher.class>io.vertx.core.Launcher</launcher.class>
   </properties>
 

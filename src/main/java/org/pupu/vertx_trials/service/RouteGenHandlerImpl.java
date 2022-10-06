@@ -1,22 +1,27 @@
 package org.pupu.vertx_trials.service;
 
+import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import org.pupu.vertx_trials.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RouteGenHandlerImpl implements RouteGenHandler{
-
+  private static final Logger log = LoggerFactory.getLogger(RouteGenHandlerImpl.class);
   private final Router router;
   private final Database db;
+  private final Vertx vertx;
   private final EmployeeInterface employee;
-  private EmployeeService employeeService;
-  private NewEmployee newEmployee;
+  private final EmployeeService employeeService;
+  private final NewEmployee newEmployee;
 
-  public RouteGenHandlerImpl(Database db, Router router){
+  public RouteGenHandlerImpl(Database db, Router router, Vertx vertx){
     this.router = router;
     this.db = db;
+    this.vertx = vertx;
     this.employee = new EmployeeImpl();
     this.newEmployee = new NewEmployeeImpl();
     this.employeeService = new EmployeeServiceImpl();
@@ -49,6 +54,7 @@ public class RouteGenHandlerImpl implements RouteGenHandler{
   }
 
   private void mongoPostCollection(RoutingContext routingContext) {
+    // TODO
   }
 
   @Override
@@ -60,23 +66,23 @@ public class RouteGenHandlerImpl implements RouteGenHandler{
     this.db.setDatabaseName(routingContext.pathParam("DatabaseName"));
     this.db.setCollectionName(routingContext.pathParam("CollectionName"));
     this.employee.set_id(routingContext.pathParam("ID"));
-//    JsonObject output = new JsonObject();
-//    this.employee.getMongoDao().showRecord(this.db, employee.getEmployeeJson());
-    this.employeeService.showEmployee(this.db, this.newEmployee, routingContext)
+    this.employeeService.showEmployee(this.db, this.newEmployee, vertx)
       .map(res -> new JsonArray().add(res))
       .onSuccess(res -> {
-        System.out.println("IN HERE\nPath: "+routingContext.normalizedPath());
-        System.out.println("RESPONSE: "+res.encodePrettily());
+        if (res.contains(null)){
+          log.debug("PATH: {}", routingContext.normalizedPath());
+          res = new JsonArray()
+            .add(new JsonObject()
+              .put("Message", "ID does not exist in Database")
+            );
+          log.debug("RESPONSE: {}", res.encodePrettily());
+        } else {
+          log.debug("PATH: {}", routingContext.normalizedPath());
+          log.debug("RESPONSE: {}", res.encodePrettily());
+        }
         routingContext.response().end(res.encodePrettily());
       })
     ;
-//    routingContext.json(
-//      new JsonObject()
-//        .put("Page", "GET request to MongoDB")
-//        .put("DatabaseName", this.db.getDatabaseName())
-//        .put("CollectionName", this.db.getCollectionName())
-////        .put("JSON String", this.employeeService.getResponse().toString())
-//    );
   }
 
   private void mongoPut(RoutingContext routingContext) {
@@ -97,13 +103,23 @@ public class RouteGenHandlerImpl implements RouteGenHandler{
     this.db.setDatabaseName(routingContext.pathParam("DatabaseName"));
     this.db.setCollectionName(routingContext.pathParam("CollectionName"));
     this.employee.set_id(routingContext.pathParam("ID"));
-    this.employee.getMongoDao().deleteRecord(this.db, this.employee.getEmployeeJson());
-    routingContext.json(
-      new JsonObject()
-        .put("Page", "DELETE request to MongoDB")
-        .put("DatabaseName", this.db.getDatabaseName())
-        .put("CollectionName", this.db.getCollectionName())
-    );
+    this.employeeService.deleteEmployee(this.db, this.newEmployee, vertx)
+      .map(res -> new JsonArray().add(res))
+      .onSuccess(res -> {
+        if (res.contains(null)){
+          log.debug("PATH: {}", routingContext.normalizedPath());
+          res = new JsonArray()
+            .add(new JsonObject()
+              .put("Message", "ID does not exist in Database")
+            );
+          log.debug("RESPONSE: {}", res.encodePrettily());
+        } else {
+          log.debug("PATH: {}", routingContext.normalizedPath());
+          log.debug("RESPONSE: {}", res.encodePrettily());
+        }
+        routingContext.response().end(res.encodePrettily());
+      })
+    ;
   }
 
   private void mongoPost(RoutingContext routingContext) {

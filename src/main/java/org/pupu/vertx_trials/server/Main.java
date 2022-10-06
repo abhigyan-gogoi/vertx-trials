@@ -2,17 +2,17 @@ package org.pupu.vertx_trials.server;
 
 //import com.hazelcast.config.Config;
 import io.vertx.core.Vertx;
-import io.vertx.core.VertxOptions;
+import org.pupu.vertx_trials.service.ServerVerticle;
 //import io.vertx.spi.cluster.hazelcast.ConfigUtil;
 
-public class ServerMain {
+public class Main {
 
   public static void main(String[] args) {
-    // Vertx vertx = Vertx.vertx();
-    // vertx.deployVerticle(new Server());
+     Vertx vertx = Vertx.vertx();
+     vertx.deployVerticle(new ServerVerticle());
     // Run in multiple threads using setInstances(n)
     // n is number of thread instances
-    //vertx.deployVerticle("org.pupu.vertx_trials.server.Server",
+    //vertx.deployVerticle("org.pupu.vertx_trials.service.Server",
     //  new DeploymentOptions().setInstances(1));
 
     // eventBus() used for verticle communication
@@ -41,8 +41,8 @@ public class ServerMain {
 //    Vertx.clusteredVertx(new VertxOptions().setClusterManager(mgr))
 //      .onSuccess(vertx -> vertx.deployVerticle(new Server()))
 //      .onFailure(failure -> System.out.println("ERROR: "+failure));
-    Vertx.clusteredVertx(new VertxOptions())
-      .onSuccess(vertx -> vertx.deployVerticle(new Server()))
-      .onFailure(failure -> System.out.println("ERROR: "+failure));
+//    Vertx.clusteredVertx(new VertxOptions())
+//      .onSuccess(vertx -> vertx.deployVerticle(new Server()))
+//      .onFailure(failure -> System.out.println("ERROR: "+failure));
   }
 }
