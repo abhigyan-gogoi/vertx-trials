@@ -5,10 +5,8 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import org.pupu.vertx_trials.dao.MongoDao;
 import org.pupu.vertx_trials.dao.MongoDaoImpl;
-import org.pupu.vertx_trials.model.Database;
+import org.pupu.vertx_trials.model.DatabaseConfig;
 import org.pupu.vertx_trials.model.Employee;
-
-import java.util.List;
 
 public class EmployeeServiceImpl implements EmployeeService{
   private final MongoDao mongoDao;
@@ -18,32 +16,22 @@ public class EmployeeServiceImpl implements EmployeeService{
   }
 
   @Override
-  public Future<JsonObject> showEmployee(Database db, Employee employee, Vertx vertx) {
+  public Future<JsonObject> showEmployee(DatabaseConfig db, Employee employee, Vertx vertx) {
     return this.mongoDao.showRecordJson(db, employee, vertx);
   }
 
   @Override
-  public Future<List<JsonObject>> showEmployeeRecords(Database db, Vertx vertx) {
-    return this.mongoDao.showCollectionRecords(db, vertx);
-  }
-
-  @Override
-  public Future<List<String>> showCollections(Database db, Vertx vertx) {
-    return this.mongoDao.showCollections(db, vertx);
-  }
-
-  @Override
-  public Future<JsonObject> deleteEmployee(Database db, Employee employee, Vertx vertx) {
+  public Future<JsonObject> deleteEmployee(DatabaseConfig db, Employee employee, Vertx vertx) {
     return this.mongoDao.deleteRecordJson(db, employee, vertx);
   }
 
   @Override
-  public Future<JsonObject> updateEmployee(Database db, Employee employee, String update, Vertx vertx) {
+  public Future<JsonObject> updateEmployee(DatabaseConfig db, Employee employee, String update, Vertx vertx) {
     return this.mongoDao.updateRecordJson(db, employee, update, vertx);
   }
 
   @Override
-  public Future<String> insertEmployee(Database db, Employee employee, Vertx vertx) {
+  public Future<String> insertEmployee(DatabaseConfig db, Employee employee, Vertx vertx) {
     return this.mongoDao.insertRecordJson(db, employee, vertx);
   }
 }

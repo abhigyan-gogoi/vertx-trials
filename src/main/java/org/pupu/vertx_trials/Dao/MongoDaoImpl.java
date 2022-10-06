@@ -4,7 +4,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClient;
-import org.pupu.vertx_trials.model.Database;
+import org.pupu.vertx_trials.model.DatabaseConfig;
 import org.pupu.vertx_trials.model.Employee;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +14,7 @@ import java.util.List;
 public class MongoDaoImpl implements MongoDao {
   private static final Logger log = LoggerFactory.getLogger(MongoDaoImpl.class);
   private JsonObject dbConfig;
-  public void setMongoConfig(Database db) {
+  public void setMongoConfig(DatabaseConfig db) {
     // Create JSON object for connecting to MongoDB server
     this.dbConfig = new JsonObject()
       .put("connection_uri", db.getDbUri())
@@ -23,7 +23,7 @@ public class MongoDaoImpl implements MongoDao {
   }
 
   @Override
-  public Future<String> insertRecordJson(Database db, Employee employee, Vertx vertx) {
+  public Future<String> insertRecordJson(DatabaseConfig db, Employee employee, Vertx vertx) {
     // Set MongoDB config
     setMongoConfig(db);
     // Create MongoClient
@@ -33,7 +33,16 @@ public class MongoDaoImpl implements MongoDao {
   }
 
   @Override
-  public Future<JsonObject> updateRecordJson(Database db, Employee employee, String update, Vertx vertx) {
+  public Future<Void> insertCollection(DatabaseConfig db, Vertx vertx) {
+    // Set MongoDB config
+    setMongoConfig(db);
+    // Create MongoClient
+    MongoClient client = MongoClient.createShared(vertx, this.dbConfig);
+    return client.createCollection(db.getCollectionName());
+  }
+
+  @Override
+  public Future<JsonObject> updateRecordJson(DatabaseConfig db, Employee employee, String update, Vertx vertx) {
     // Set MongoDB config
     setMongoConfig(db);
     // Create MongoClient
@@ -49,7 +58,7 @@ public class MongoDaoImpl implements MongoDao {
   }
 
   @Override
-  public Future<JsonObject> showRecordJson(Database db, Employee employee, Vertx vertx) {
+  public Future<JsonObject> showRecordJson(DatabaseConfig db, Employee employee, Vertx vertx) {
     // Set MongoDB config
     setMongoConfig(db);
     // Create MongoClient
@@ -63,7 +72,7 @@ public class MongoDaoImpl implements MongoDao {
   }
 
   @Override
-  public Future<List<JsonObject>> showCollectionRecords(Database db, Vertx vertx) {
+  public Future<List<JsonObject>> showCollectionRecords(DatabaseConfig db, Vertx vertx) {
     // Set MongoDB config
     setMongoConfig(db);
     // Create MongoClient
@@ -74,7 +83,7 @@ public class MongoDaoImpl implements MongoDao {
   }
 
   @Override
-  public Future<List<String>> showCollections(Database db, Vertx vertx) {
+  public Future<List<String>> showCollections(DatabaseConfig db, Vertx vertx) {
     // Set MongoDB config
     setMongoConfig(db);
     // Create MongoClient
@@ -83,7 +92,7 @@ public class MongoDaoImpl implements MongoDao {
   }
 
   @Override
-  public Future<JsonObject> deleteRecordJson(Database db, Employee employee, Vertx vertx) {
+  public Future<JsonObject> deleteRecordJson(DatabaseConfig db, Employee employee, Vertx vertx) {
     // Set MongoDB config
     setMongoConfig(db);
     // Create MongoClient

@@ -12,20 +12,22 @@ import org.slf4j.LoggerFactory;
 public class RouteGenHandlerImpl implements RouteGenHandler{
   private static final Logger log = LoggerFactory.getLogger(RouteGenHandlerImpl.class);
   private final Router router;
-  private final Database db;
-  private final Vertx vertx;
-  private final EmployeeService employeeService;
+  private final DatabaseConfig db;
   private final Employee employee;
+  private final Vertx vertx;
+  private final DatabaseService dbService;
+  private final EmployeeService employeeService;
 
-  public RouteGenHandlerImpl(Database db, Router router, Vertx vertx){
+  public RouteGenHandlerImpl(DatabaseConfig db, Router router, Vertx vertx){
     this.router = router;
     this.db = db;
     this.vertx = vertx;
     this.employee = new EmployeeImpl();
     this.employeeService = new EmployeeServiceImpl();
+    this.dbService = new DatabaseServiceImpl();
     // Mount handler for specific incoming requests
     // MongoDB routes
-    router.get("/mongo/:DatabaseName").handler(this::mongoGetAllCollections);
+    router.get("/mongo/:DatabaseName").handler(this::mongoGetDatabaseCollections);
     router.get("/mongo/:DatabaseName/:CollectionName").handler(this::mongoGetCollection);
     router.get("/mongo/:DatabaseName/:CollectionName/:ID").handler(this::mongoGet);
     router.post("/mongo/:DatabaseName/:CollectionName").handler(this::mongoPostCollection);
@@ -33,11 +35,6 @@ public class RouteGenHandlerImpl implements RouteGenHandler{
     router.delete("/mongo/:DatabaseName/:CollectionName/:ID").handler(this::mongoDelete);
     router.delete("/mongo/:DatabaseName/:CollectionName/:ID").handler(this::mongoDelete);
     router.put("/mongo/:DatabaseName/:CollectionName/:LastName/:NewLastName").handler(this::mongoPut);
-
-  }
-
-  private void mongoPostCollection(RoutingContext routingContext) {
-    // TODO
   }
 
   @Override
@@ -72,7 +69,7 @@ public class RouteGenHandlerImpl implements RouteGenHandler{
     String restCall = "GET";
     this.db.setDatabaseName(routingContext.pathParam("DatabaseName"));
     this.db.setCollectionName(routingContext.pathParam("CollectionName"));
-    this.employeeService.showEmployeeRecords(this.db, this.vertx)
+    this.dbService.showCollectionRecords(this.db, this.vertx)
       .map(JsonArray::new)
       .onSuccess(res -> {
         if (res.contains(null)){
@@ -89,10 +86,10 @@ public class RouteGenHandlerImpl implements RouteGenHandler{
       });
   }
 
-  private void mongoGetAllCollections(RoutingContext routingContext) {
+  private void mongoGetDatabaseCollections(RoutingContext routingContext) {
     String restCall = "GET";
     this.db.setDatabaseName(routingContext.pathParam("DatabaseName"));
-    this.employeeService.showCollections(this.db, vertx)
+    this.dbService.showCollections(this.db, vertx)
       .map(res -> {
         JsonArray jsonArray = new JsonArray();
         for (String str:res) {
@@ -169,6 +166,24 @@ public class RouteGenHandlerImpl implements RouteGenHandler{
         res = new JsonArray()
           .add(this.employee.getEmployeeJson())
         ;
+        log.debug("PATH: {}", routingContext.normalizedPath());
+        log.debug("REST CALL: {}", restCall);
+        log.debug("RESPONSE: {}", res.encodePrettily());
+        routingContext.response().end(res.encodePrettily());
+      })
+    ;
+  }
+
+  private void mongoPostCollection(RoutingContext routingContext) {
+    String restCall = "POST";
+    this.db.setDatabaseName(routingContext.pathParam("DatabaseName"));
+    this.db.setCollectionName(routingContext.pathParam("CollectionName"));
+    this.dbService.insertCollection(this.db, this.vertx)
+      .map(res -> new JsonArray())
+      .onSuccess(res -> {
+        res.add(new JsonObject()
+          .put("collection_name", this.db.getCollectionName())
+        );
         log.debug("PATH: {}", routingContext.normalizedPath());
         log.debug("REST CALL: {}", restCall);
         log.debug("RESPONSE: {}", res.encodePrettily());

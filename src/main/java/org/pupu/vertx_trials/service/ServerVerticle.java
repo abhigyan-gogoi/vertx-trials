@@ -3,7 +3,7 @@ package org.pupu.vertx_trials.service;
 import io.vertx.core.*;
 import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
-import org.pupu.vertx_trials.model.Database;
+import org.pupu.vertx_trials.model.DatabaseConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +17,7 @@ public class ServerVerticle extends AbstractVerticle {
   public void start(Promise<Void> startPromise) {
 //    vertx.setPeriodic(2000, this::updateTemperatureData);
     // Create Database object
-    Database db = new Database();
+    DatabaseConfig db = new DatabaseConfig();
     db.setDbUri(dbUri);
     // Create HTTP server
     HttpServer server = vertx.createHttpServer();

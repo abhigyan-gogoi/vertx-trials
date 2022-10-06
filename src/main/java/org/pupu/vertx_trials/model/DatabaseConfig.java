@@ -1,6 +1,6 @@
 package org.pupu.vertx_trials.model;
 
-public class Database {
+public class DatabaseConfig {
 
   private String dbUri;
   private String databaseName;
