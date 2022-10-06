@@ -24,4 +24,14 @@ public class EmployeeServiceImpl implements EmployeeService{
   public Future<JsonObject> deleteEmployee(Database db, NewEmployee employee, Vertx vertx) {
     return this.mongoDao.deleteRecordJson(db, employee, vertx);
   }
+
+  @Override
+  public Future<JsonObject> updateEmployee(Database db, NewEmployee employee, String update, Vertx vertx) {
+    return this.mongoDao.updateRecordJson(db, employee, update, vertx);
+  }
+
+  @Override
+  public Future<String> insertEmployee(Database db, NewEmployee employee, Vertx vertx) {
+    return this.mongoDao.insertRecordJson(db, employee, vertx);
+  }
 }

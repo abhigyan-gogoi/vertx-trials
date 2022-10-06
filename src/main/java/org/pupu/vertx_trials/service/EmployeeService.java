@@ -9,5 +9,6 @@ import org.pupu.vertx_trials.model.NewEmployee;
 public interface EmployeeService {
   Future<JsonObject> showEmployee(Database db, NewEmployee employee, Vertx vertx);
   Future<JsonObject> deleteEmployee(Database db, NewEmployee employee, Vertx vertx);
-
+  Future<JsonObject> updateEmployee(Database db, NewEmployee employee, String update, Vertx vertx);
+  Future<String> insertEmployee(Database db, NewEmployee employee, Vertx vertx);
 }

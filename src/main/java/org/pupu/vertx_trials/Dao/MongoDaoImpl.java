@@ -2,16 +2,17 @@ package org.pupu.vertx_trials.dao;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClient;
 import org.pupu.vertx_trials.model.Database;
 import org.pupu.vertx_trials.model.NewEmployee;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MongoDaoImpl implements MongoDao {
+  private static final Logger log = LoggerFactory.getLogger(MongoDaoImpl.class);
   private JsonObject dbConfig;
-
-  public void createMongoConfig(Database db) {
+  public void setMongoConfig(Database db) {
     // Create JSON object for connecting to MongoDB server
     this.dbConfig = new JsonObject()
       .put("connection_uri", db.getDbUri())
@@ -20,144 +21,56 @@ public class MongoDaoImpl implements MongoDao {
   }
 
   @Override
-  public void insertRecord(Database db, JsonObject employeeJson) {
-    // Create vertx mongo client to insert new employee record
-    MongoClient client = MongoClient.createShared(Vertx.vertx(), this.dbConfig);
-    // Execute the insert query in MongoDb
-    client.insert(db.getCollectionName(), employeeJson, res ->{
-      if (res.succeeded()){
-        System.out.println("Employee "+ employeeJson.getString("_id")+" stored in employees Collection");
-      } else {
-        // Failure if record exists
-        System.out.println("Employee "+ employeeJson.getString("_id")+" already exists in employees Collection");
-      }
-    });
+  public Future<String> insertRecordJson(Database db, NewEmployee employee, Vertx vertx) {
+    // Set MongoDB config
+    setMongoConfig(db);
+    // Create MongoClient
+    MongoClient client = MongoClient.createShared(vertx, this.dbConfig);
+    return client.insert(db.getCollectionName(), employee.getEmployeeJson());
   }
 
   @Override
-  public void showRecord(Database db, JsonObject employeeJson) {
-    // Create MongoClient config
-    createMongoConfig(db);
+  public Future<JsonObject> updateRecordJson(Database db, NewEmployee employee, String update, Vertx vertx) {
+    // Set MongoDB config
+    setMongoConfig(db);
     // Create MongoClient
-    MongoClient client = MongoClient.createShared(Vertx.vertx(), this.dbConfig);
+    MongoClient client = MongoClient.createShared(vertx, this.dbConfig);
     // Create JSON Object for query
     JsonObject query = new JsonObject()
-      .put("_id", employeeJson.getString("_id"));
-    // Create JSON Object for fields
-    JsonObject fields = new JsonObject();
-    // Create Future object
-//    Future future = Future.future(res -> {
-//      client.findOne(db.getCollectionName(), query, fields);
-//    }).onSuccess(res -> {
-//
-//    })
-//      ;
-    // Send GET request to Mongo DB server
-    // Use find method in MongoClient
-
-//    client.find(db.getCollectionName(), query, res -> {
-//      if (res.succeeded()){
-//        for (JsonObject json : res.result()) {
-//          System.out.println(json.encodePrettily());
-//        }
-//        System.out.println("Employee record displayed");
-//      } else {
-//        // Failure
-//        System.out.println("Failed to read Record from DB");
-//      }
-//    });
-    client.findOne(db.getCollectionName(), query, fields)
-      .onSuccess(res -> {
-        // Use service class
-        System.out.println(res.encodePrettily());
-      })
-      .onFailure(err -> {
-        System.out.println(err.getMessage());
-      });
+      .put("last_name", employee.getLast_name());
+    // Create JSON Object for update
+    employee.setLast_name(update);
+    // Send PUT request to Mongo DB server
+    // Use findOneAndDelete method in MongoClient
+    return client.findOneAndUpdate(db.getCollectionName(), query, employee.getEmployeeJson());
   }
 
   @Override
-  public Future<JsonObject> showRecordJson(Database db, NewEmployee employee) {
-    // Create MongoClient config
-    createMongoConfig(db);
+  public Future<JsonObject> showRecordJson(Database db, NewEmployee employee, Vertx vertx) {
+    // Set MongoDB config
+    setMongoConfig(db);
     // Create MongoClient
-    MongoClient client = MongoClient.createShared(Vertx.vertx(), this.dbConfig);
+    MongoClient client = MongoClient.createShared(vertx, this.dbConfig);
     // Create JSON Object for query
     JsonObject query = new JsonObject()
       .put("_id", employee.get_id());
     // Create JSON Object for fields
     JsonObject fields = new JsonObject();
-    // Create Future object
-//    Future future = Future.future(res -> {
-//      client.findOne(db.getCollectionName(), query, fields);
-//    }).onSuccess(res -> {
-//
-//    })
-//      ;
-    // Send GET request to Mongo DB server
-    // Use find method in MongoClient
-
-//    client.find(db.getCollectionName(), query, res -> {
-//      final JsonArray response = new JsonArray();
-//      if (res.succeeded()){
-//        for (JsonObject json : res.result()) {
-//          System.out.println(json.encodePrettily());
-//          response.add(json);
-//        }
-//        System.out.println("Employee record displayed");
-//      } else {
-//        // Failure
-//        System.out.println("Failed to read Record from DB");
-//      }
-//    });
     return client.findOne(db.getCollectionName(), query, fields);
-//      .onSuccess(res -> {
-//        // Use service class
-//        System.out.println(res.encodePrettily());
-//      })
-//      .onFailure(err -> {
-//        System.out.println(err.getMessage());
-//      });
   }
 
   @Override
-  public void deleteRecord(Database db, JsonObject employeeJson) {
+  public Future<JsonObject> deleteRecordJson(Database db, NewEmployee employee, Vertx vertx) {
+    // Set MongoDB config
+    setMongoConfig(db);
     // Create MongoClient
-    MongoClient client = MongoClient.createShared(Vertx.vertx(), this.dbConfig);
+    MongoClient client = MongoClient.createShared(vertx, this.dbConfig);
     // Create JSON Object for query
     JsonObject query = new JsonObject()
-      .put("_id", employeeJson.getString("_id"));
+      .put("_id", employee.get_id());
     // Send POST request to Mongo DB server
-    // Use insert method in MongoClient
-    client.removeDocuments(db.getCollectionName(), query, res -> {
-      if (res.succeeded()){
-        System.out.println("Employee "+ employeeJson.getString("_id")+" Deleted from " + db.getCollectionName()+" Collection");
-      } else {
-        // Failure if record exists
-        System.out.println("Employee "+ employeeJson.getString("_id")+" already exists in  "+ db.getCollectionName()+" Collection");
-      }
-    });
-  }
-
-  @Override
-  public void updateRecord(Database db, JsonObject employeeJson, String NewLastName) {
-    // Create MongoClient
-    MongoClient client = MongoClient.createShared(Vertx.vertx(), this.dbConfig);
-    // Create JSON Object for query
-    JsonObject query = new JsonObject()
-      .put("Last_name", employeeJson.getString("Last_name"))
-      ;
-    // Create JSON Object to update Last Name
-    JsonObject update = new JsonObject().put("$set", new JsonObject().put("Last_name", NewLastName));
-    // Send POST request to Mongo DB server
-    // Use updateCollection method in MongoClient
-    client.updateCollection(db.getCollectionName(), query, update, res -> {
-      if (res.succeeded()){
-        System.out.println("Employee "+employeeJson.getString("_id")+" Updated with new Last Name " + NewLastName);
-      } else {
-        System.out.println("Employee "+employeeJson.getString("_id")+" does not exist in " + db.getCollectionName() + " Collection");
-      }
-    });
+    // Use findOneAndDelete method in MongoClient
+    return client.findOneAndDelete(db.getCollectionName(), query);
   }
 
   @Override

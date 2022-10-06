@@ -53,8 +53,8 @@ public class NewEmployeeImpl implements NewEmployee{
   public JsonObject getEmployeeJson() {
     return new JsonObject()
       .put("_id", this._id)
-      .put("First_name", this.first_name)
-      .put("Last_name", this.last_name)
+      .put("first_name", this.first_name)
+      .put("last_name", this.last_name)
       ;
   }
 }
