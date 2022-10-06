@@ -5,7 +5,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClient;
 import org.pupu.vertx_trials.model.Database;
-import org.pupu.vertx_trials.model.NewEmployee;
+import org.pupu.vertx_trials.model.Employee;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +21,7 @@ public class MongoDaoImpl implements MongoDao {
   }
 
   @Override
-  public Future<String> insertRecordJson(Database db, NewEmployee employee, Vertx vertx) {
+  public Future<String> insertRecordJson(Database db, Employee employee, Vertx vertx) {
     // Set MongoDB config
     setMongoConfig(db);
     // Create MongoClient
@@ -30,7 +30,7 @@ public class MongoDaoImpl implements MongoDao {
   }
 
   @Override
-  public Future<JsonObject> updateRecordJson(Database db, NewEmployee employee, String update, Vertx vertx) {
+  public Future<JsonObject> updateRecordJson(Database db, Employee employee, String update, Vertx vertx) {
     // Set MongoDB config
     setMongoConfig(db);
     // Create MongoClient
@@ -46,7 +46,7 @@ public class MongoDaoImpl implements MongoDao {
   }
 
   @Override
-  public Future<JsonObject> showRecordJson(Database db, NewEmployee employee, Vertx vertx) {
+  public Future<JsonObject> showRecordJson(Database db, Employee employee, Vertx vertx) {
     // Set MongoDB config
     setMongoConfig(db);
     // Create MongoClient
@@ -60,7 +60,7 @@ public class MongoDaoImpl implements MongoDao {
   }
 
   @Override
-  public Future<JsonObject> deleteRecordJson(Database db, NewEmployee employee, Vertx vertx) {
+  public Future<JsonObject> deleteRecordJson(Database db, Employee employee, Vertx vertx) {
     // Set MongoDB config
     setMongoConfig(db);
     // Create MongoClient
@@ -73,7 +73,6 @@ public class MongoDaoImpl implements MongoDao {
     return client.findOneAndDelete(db.getCollectionName(), query);
   }
 
-  @Override
   public void showCollection(Database db) {
     // Create MongoClient
     MongoClient client = MongoClient.createShared(Vertx.vertx(), this.dbConfig);
@@ -95,8 +94,7 @@ public class MongoDaoImpl implements MongoDao {
       }
     });
   }
-
-  @Override
+  
   public void showDatabaseCollections(Database db) {
     // Create MongoClient
     MongoClient client = MongoClient.createShared(Vertx.vertx(), this.dbConfig);

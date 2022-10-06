@@ -1,11 +1,8 @@
 package org.pupu.vertx_trials.model;
 
 import io.vertx.core.json.JsonObject;
-import org.pupu.vertx_trials.dao.MongoDao;
-import org.pupu.vertx_trials.dao.MongoDaoImpl;
 
-public class EmployeeImpl implements EmployeeInterface{
-  private final MongoDao mongoDao;
+public class EmployeeImpl implements Employee {
   private String _id;
   private String first_name;
   private String last_name;
@@ -14,7 +11,12 @@ public class EmployeeImpl implements EmployeeInterface{
     this._id = "ZL099";
     this.first_name = "Abhigyan";
     this.last_name = "Gogoi";
-    this.mongoDao = new MongoDaoImpl();
+  }
+
+  public EmployeeImpl(String _id, String first_name, String last_name) {
+    this._id = _id;
+    this.first_name = first_name;
+    this.last_name = last_name;
   }
 
   @Override
@@ -51,14 +53,8 @@ public class EmployeeImpl implements EmployeeInterface{
   public JsonObject getEmployeeJson() {
     return new JsonObject()
       .put("_id", this._id)
-      .put("First_name", this.first_name)
-      .put("Last_name", this.last_name)
+      .put("first_name", this.first_name)
+      .put("last_name", this.last_name)
       ;
   }
-
-  @Override
-  public MongoDao getMongoDao() {
-    return mongoDao;
-  }
-
 }

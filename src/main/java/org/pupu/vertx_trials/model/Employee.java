@@ -1,9 +1,8 @@
 package org.pupu.vertx_trials.model;
 
 import io.vertx.core.json.JsonObject;
-import org.pupu.vertx_trials.dao.MongoDao;
 
-public interface NewEmployee {
+public interface Employee {
   String get_id();
   String getFirst_name();
   String getLast_name();
