@@ -30,4 +30,9 @@ public class DatabaseServiceImpl implements DatabaseService{
   public Future<Void> insertCollection(DatabaseConfig db, Vertx vertx) {
     return this.mongoDao.insertCollection(db, vertx);
   }
+
+  @Override
+  public Future<Void> deleteCollection(DatabaseConfig db, Vertx vertx) {
+    return this.mongoDao.deleteCollection(db, vertx);
+  }
 }

@@ -27,13 +27,13 @@ public class RouteGenHandlerImpl implements RouteGenHandler{
     this.dbService = new DatabaseServiceImpl();
     // Mount handler for specific incoming requests
     // MongoDB routes
-    router.get("/mongo/:DatabaseName").handler(this::mongoGetDatabaseCollections);
+    router.get("/mongo/:DatabaseName").handler(this::mongoGetDatabase);
     router.get("/mongo/:DatabaseName/:CollectionName").handler(this::mongoGetCollection);
     router.get("/mongo/:DatabaseName/:CollectionName/:ID").handler(this::mongoGet);
     router.post("/mongo/:DatabaseName/:CollectionName").handler(this::mongoPostCollection);
     router.post("/mongo/:DatabaseName/:CollectionName/:ID/:FirstName/:LastName").handler(this::mongoPost);
     router.delete("/mongo/:DatabaseName/:CollectionName/:ID").handler(this::mongoDelete);
-    router.delete("/mongo/:DatabaseName/:CollectionName/:ID").handler(this::mongoDelete);
+    router.delete("/mongo/:DatabaseName/:CollectionName").handler(this::mongoDeleteCollection);
     router.put("/mongo/:DatabaseName/:CollectionName/:LastName/:NewLastName").handler(this::mongoPut);
   }
 
@@ -42,6 +42,7 @@ public class RouteGenHandlerImpl implements RouteGenHandler{
     router.handleContext(routingContext);
   }
 
+  // GET -> Show Methods
   private void mongoGet(RoutingContext routingContext) {
     String restCall = "GET";
     this.db.setDatabaseName(routingContext.pathParam("DatabaseName"));
@@ -86,7 +87,7 @@ public class RouteGenHandlerImpl implements RouteGenHandler{
       });
   }
 
-  private void mongoGetDatabaseCollections(RoutingContext routingContext) {
+  private void mongoGetDatabase(RoutingContext routingContext) {
     String restCall = "GET";
     this.db.setDatabaseName(routingContext.pathParam("DatabaseName"));
     this.dbService.showCollections(this.db, vertx)
@@ -106,6 +107,7 @@ public class RouteGenHandlerImpl implements RouteGenHandler{
     ;
   }
 
+  // PUT -> Update Methods
   private void mongoPut(RoutingContext routingContext) {
     String restCall = "PUT";
     this.db.setDatabaseName(routingContext.pathParam("DatabaseName"));
@@ -130,6 +132,11 @@ public class RouteGenHandlerImpl implements RouteGenHandler{
     ;
   }
 
+//  private void mongoPutCollection(RoutingContext routingContext) {
+//
+//  }
+
+  // DELETE -> Delete Methods
   private void mongoDelete(RoutingContext routingContext) {
     String restCall = "DELETE";
     this.db.setDatabaseName(routingContext.pathParam("DatabaseName"));
@@ -153,6 +160,26 @@ public class RouteGenHandlerImpl implements RouteGenHandler{
     ;
   }
 
+  private void mongoDeleteCollection(RoutingContext routingContext) {
+    String restCall = "DELETE";
+    this.db.setDatabaseName(routingContext.pathParam("DatabaseName"));
+    this.db.setCollectionName(routingContext.pathParam("CollectionName"));
+    this.dbService.deleteCollection(this.db, this.vertx)
+      .map(res -> new JsonArray())
+      .onSuccess(res -> {
+        res.add(new JsonObject()
+          .put("rest_call", restCall)
+          .put("collection_name", this.db.getCollectionName())
+        );
+        log.debug("PATH: {}", routingContext.normalizedPath());
+        log.debug("REST CALL: {}", restCall);
+        log.debug("RESPONSE: {}", res.encodePrettily());
+        routingContext.response().end(res.encodePrettily());
+      })
+    ;
+  }
+
+  // POST -> Insert Methods
   private void mongoPost(RoutingContext routingContext) {
     String restCall = "POST";
     this.db.setDatabaseName(routingContext.pathParam("DatabaseName"));
@@ -182,6 +209,7 @@ public class RouteGenHandlerImpl implements RouteGenHandler{
       .map(res -> new JsonArray())
       .onSuccess(res -> {
         res.add(new JsonObject()
+          .put("rest_call", restCall)
           .put("collection_name", this.db.getCollectionName())
         );
         log.debug("PATH: {}", routingContext.normalizedPath());
