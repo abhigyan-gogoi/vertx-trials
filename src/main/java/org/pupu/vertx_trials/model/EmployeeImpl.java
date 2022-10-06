@@ -8,15 +8,7 @@ public class EmployeeImpl implements Employee {
   private String last_name;
 
   public EmployeeImpl() {
-    this._id = "ZL099";
-    this.first_name = "Abhigyan";
-    this.last_name = "Gogoi";
-  }
 
-  public EmployeeImpl(String _id, String first_name, String last_name) {
-    this._id = _id;
-    this.first_name = first_name;
-    this.last_name = last_name;
   }
 
   @Override

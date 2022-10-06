@@ -9,6 +9,8 @@ import org.pupu.vertx_trials.model.Employee;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 public class MongoDaoImpl implements MongoDao {
   private static final Logger log = LoggerFactory.getLogger(MongoDaoImpl.class);
   private JsonObject dbConfig;
@@ -26,6 +28,7 @@ public class MongoDaoImpl implements MongoDao {
     setMongoConfig(db);
     // Create MongoClient
     MongoClient client = MongoClient.createShared(vertx, this.dbConfig);
+    log.debug("JSON: {}", employee.getEmployeeJson().encodePrettily());
     return client.insert(db.getCollectionName(), employee.getEmployeeJson());
   }
 
@@ -60,6 +63,26 @@ public class MongoDaoImpl implements MongoDao {
   }
 
   @Override
+  public Future<List<JsonObject>> showCollectionRecords(Database db, Vertx vertx) {
+    // Set MongoDB config
+    setMongoConfig(db);
+    // Create MongoClient
+    MongoClient client = MongoClient.createShared(vertx, this.dbConfig);
+    // Create JSON Object for query
+    JsonObject query = new JsonObject();
+    return client.find(db.getCollectionName(), query);
+  }
+
+  @Override
+  public Future<List<String>> showCollections(Database db, Vertx vertx) {
+    // Set MongoDB config
+    setMongoConfig(db);
+    // Create MongoClient
+    MongoClient client = MongoClient.createShared(vertx, this.dbConfig);
+    return client.getCollections();
+  }
+
+  @Override
   public Future<JsonObject> deleteRecordJson(Database db, Employee employee, Vertx vertx) {
     // Set MongoDB config
     setMongoConfig(db);
@@ -72,50 +95,4 @@ public class MongoDaoImpl implements MongoDao {
     // Use findOneAndDelete method in MongoClient
     return client.findOneAndDelete(db.getCollectionName(), query);
   }
-
-  public void showCollection(Database db) {
-    // Create MongoClient
-    MongoClient client = MongoClient.createShared(Vertx.vertx(), this.dbConfig);
-    // Create an empty JSON Object
-    // For finding all records in collection
-    // Specify Field for specific record
-    JsonObject emptyJson = new JsonObject();
-    // Send GET request to Mongo DB server
-    // Use find method in MongoClient
-    client.find(db.getCollectionName(), emptyJson, res -> {
-      if (res.succeeded()){
-        for (JsonObject json : res.result()) {
-          System.out.println(json.encodePrettily());
-        }
-        System.out.println("All Employee records displayed");
-      } else {
-        // Failure
-        System.out.println("Failed to read Collection");
-      }
-    });
-  }
-  
-  public void showDatabaseCollections(Database db) {
-    // Create MongoClient
-    MongoClient client = MongoClient.createShared(Vertx.vertx(), this.dbConfig);
-    // getCollections method gets all collections in DB
-    // dropCollection("collection-name", AsyncHandler) to delete collection
-    // CAUTION!! Deletes all records within the collection
-    // createCollection("collection-name", AsyncHandler) to create collection
-    client.getCollections(res -> {
-      if (res.succeeded()){
-        JsonObject json = new JsonObject()
-          .put("List", "Collections");
-        for (String collection : res.result()) {
-          json.put("Collection-name", collection);
-        }
-        System.out.println(json.encodePrettily());
-        System.out.println("All "+db.getDatabaseName()+" Collections are displayed");
-      } else {
-        // Failure
-        System.out.println("Failed to get all "+db.getDatabaseName()+" Collections");
-      }
-    });
-  }
-
 }

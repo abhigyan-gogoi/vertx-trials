@@ -25,11 +25,11 @@ public class RouteGenHandlerImpl implements RouteGenHandler{
     this.employeeService = new EmployeeServiceImpl();
     // Mount handler for specific incoming requests
     // MongoDB routes
-    router.get("/mongo/all-collections/:DatabaseName").handler(this::mongoGetAllCollections);
+    router.get("/mongo/:DatabaseName").handler(this::mongoGetAllCollections);
     router.get("/mongo/:DatabaseName/:CollectionName").handler(this::mongoGetCollection);
     router.get("/mongo/:DatabaseName/:CollectionName/:ID").handler(this::mongoGet);
     router.post("/mongo/:DatabaseName/:CollectionName").handler(this::mongoPostCollection);
-    router.post("/mongo/:DatabaseName/:CollectionName/:ID").handler(this::mongoPost);
+    router.post("/mongo/:DatabaseName/:CollectionName/:ID/:FirstName/:LastName").handler(this::mongoPost);
     router.delete("/mongo/:DatabaseName/:CollectionName/:ID").handler(this::mongoDelete);
     router.delete("/mongo/:DatabaseName/:CollectionName/:ID").handler(this::mongoDelete);
     router.put("/mongo/:DatabaseName/:CollectionName/:LastName/:NewLastName").handler(this::mongoPut);
@@ -56,10 +56,51 @@ public class RouteGenHandlerImpl implements RouteGenHandler{
         if (res.contains(null)){
           res = new JsonArray()
             .add(new JsonObject()
-              .put("Message", "ID does not exist in Database")
+              .put("Message", "ID already exists in Database")
             )
           ;
         }
+        log.debug("PATH: {}", routingContext.normalizedPath());
+        log.debug("REST CALL: {}", restCall);
+        log.debug("RESPONSE: {}", res.encodePrettily());
+        routingContext.response().end(res.encodePrettily());
+      })
+    ;
+  }
+
+  private void mongoGetCollection(RoutingContext routingContext) {
+    String restCall = "GET";
+    this.db.setDatabaseName(routingContext.pathParam("DatabaseName"));
+    this.db.setCollectionName(routingContext.pathParam("CollectionName"));
+    this.employeeService.showEmployeeRecords(this.db, this.vertx)
+      .map(JsonArray::new)
+      .onSuccess(res -> {
+        if (res.contains(null)){
+          res = new JsonArray()
+            .add(new JsonObject()
+              .put("Message", "Collection does not have any records in Database")
+            )
+          ;
+        }
+        log.debug("PATH: {}", routingContext.normalizedPath());
+        log.debug("REST CALL: {}", restCall);
+        log.debug("RESPONSE: {}", res.encodePrettily());
+        routingContext.response().end(res.encodePrettily());
+      });
+  }
+
+  private void mongoGetAllCollections(RoutingContext routingContext) {
+    String restCall = "GET";
+    this.db.setDatabaseName(routingContext.pathParam("DatabaseName"));
+    this.employeeService.showCollections(this.db, vertx)
+      .map(res -> {
+        JsonArray jsonArray = new JsonArray();
+        for (String str:res) {
+          jsonArray.add(new JsonObject().put("collection_name", str));
+        }
+        return jsonArray;
+      })
+      .onSuccess(res -> {
         log.debug("PATH: {}", routingContext.normalizedPath());
         log.debug("REST CALL: {}", restCall);
         log.debug("RESPONSE: {}", res.encodePrettily());
@@ -120,6 +161,8 @@ public class RouteGenHandlerImpl implements RouteGenHandler{
     this.db.setDatabaseName(routingContext.pathParam("DatabaseName"));
     this.db.setCollectionName(routingContext.pathParam("CollectionName"));
     this.employee.set_id(routingContext.pathParam("ID"));
+    this.employee.setFirst_name(routingContext.pathParam("FirstName"));
+    this.employee.setLast_name(routingContext.pathParam("LastName"));
     this.employeeService.insertEmployee(this.db, this.employee, vertx)
       .map(res -> new JsonArray())
       .onSuccess(res -> {
@@ -133,27 +176,4 @@ public class RouteGenHandlerImpl implements RouteGenHandler{
       })
     ;
   }
-
-  private void mongoGetCollection(RoutingContext routingContext) {
-    this.db.setDatabaseName(routingContext.pathParam("DatabaseName"));
-    this.db.setCollectionName(routingContext.pathParam("CollectionName"));
-//    this.employee.getMongoDao().showCollection(this.db);
-    routingContext.json(
-      new JsonObject()
-        .put("Page", "GET request to MongoDB")
-        .put("DatabaseName", this.db.getDatabaseName())
-        .put("CollectionName", this.db.getCollectionName())
-    );
-  }
-
-  private void mongoGetAllCollections(RoutingContext routingContext) {
-    this.db.setDatabaseName(routingContext.pathParam("DatabaseName"));
-//    this.employee.getMongoDao().showDatabaseCollections(this.db);
-    routingContext.json(
-      new JsonObject()
-        .put("Page", "GET request for all MongoDB Collections")
-        .put("DatabaseName", this.db.getDatabaseName())
-    );
-  }
-
 }

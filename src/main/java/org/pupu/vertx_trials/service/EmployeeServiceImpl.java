@@ -8,6 +8,8 @@ import org.pupu.vertx_trials.dao.MongoDaoImpl;
 import org.pupu.vertx_trials.model.Database;
 import org.pupu.vertx_trials.model.Employee;
 
+import java.util.List;
+
 public class EmployeeServiceImpl implements EmployeeService{
   private final MongoDao mongoDao;
 
@@ -18,6 +20,16 @@ public class EmployeeServiceImpl implements EmployeeService{
   @Override
   public Future<JsonObject> showEmployee(Database db, Employee employee, Vertx vertx) {
     return this.mongoDao.showRecordJson(db, employee, vertx);
+  }
+
+  @Override
+  public Future<List<JsonObject>> showEmployeeRecords(Database db, Vertx vertx) {
+    return this.mongoDao.showCollectionRecords(db, vertx);
+  }
+
+  @Override
+  public Future<List<String>> showCollections(Database db, Vertx vertx) {
+    return this.mongoDao.showCollections(db, vertx);
   }
 
   @Override
