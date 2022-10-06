@@ -2,30 +2,12 @@ package org.pupu.vertx_trials.model;
 
 import io.vertx.core.json.JsonObject;
 
-public class Employee {
-  private String employee_id;
-  private String first_name;
-  private String last_name;
-
-  public Employee() {
-    this.generateEmployee();
-  }
-
-  public void generateEmployee(){
-    this.employee_id = "ZL099";
-    this.first_name = "Abhigyan";
-    this.last_name = "Gogoi";
-  }
-
-//  private String generateEmployeeID() {
-//    +generateEmployeeID()
-//  }
-
-  public JsonObject getEmployeeJson() {
-    return new JsonObject()
-      .put("Employee_ID", this.employee_id)
-      .put("First_name", this.first_name)
-      .put("Last_name", this.last_name)
-      ;
-  }
+public interface Employee {
+  String get_id();
+  String getFirst_name();
+  String getLast_name();
+  void set_id(String _id);
+  void setFirst_name(String first_name);
+  void setLast_name(String last_name);
+  JsonObject getEmployeeJson();
 }
