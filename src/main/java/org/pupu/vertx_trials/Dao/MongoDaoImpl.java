@@ -42,19 +42,21 @@ public class MongoDaoImpl implements MongoDao {
   }
 
   @Override
-  public Future<JsonObject> updateRecordJson(DatabaseConfig db, Employee employee, String update, Vertx vertx) {
+  public Future<JsonObject> updateRecordJson(DatabaseConfig db, Employee employee, Vertx vertx) {
     // Set MongoDB config
     setMongoConfig(db);
     // Create MongoClient
     MongoClient client = MongoClient.createShared(vertx, this.dbConfig);
     // Create JSON Object for query
     JsonObject query = new JsonObject()
-      .put("last_name", employee.getLast_name());
-    // Create JSON Object for update
-    employee.setLast_name(update);
+      .put("_id", employee.get_id());
+    log.debug("Query: {}", query.encodePrettily());
+//    JsonObject update = new JsonObject()
+//      .put("first_name", employee.getFirst_name())
+//      .put("last_name", employee.getLast_name());
     // Send PUT request to Mongo DB server
     // Use findOneAndDelete method in MongoClient
-    return client.findOneAndUpdate(db.getCollectionName(), query, employee.getEmployeeJson());
+    return client.findOneAndReplace(db.getCollectionName(), query, employee.getEmployeeJson());
   }
 
   @Override
@@ -103,5 +105,14 @@ public class MongoDaoImpl implements MongoDao {
     // Send POST request to Mongo DB server
     // Use findOneAndDelete method in MongoClient
     return client.findOneAndDelete(db.getCollectionName(), query);
+  }
+
+  @Override
+  public Future<Void> deleteCollection(DatabaseConfig db, Vertx vertx) {
+    // Set MongoDB config
+    setMongoConfig(db);
+    // Create MongoClient
+    MongoClient client = MongoClient.createShared(vertx, this.dbConfig);
+    return client.dropCollection(db.getCollectionName());
   }
 }

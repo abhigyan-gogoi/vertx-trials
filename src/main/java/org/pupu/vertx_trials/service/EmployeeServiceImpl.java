@@ -26,8 +26,8 @@ public class EmployeeServiceImpl implements EmployeeService{
   }
 
   @Override
-  public Future<JsonObject> updateEmployee(DatabaseConfig db, Employee employee, String update, Vertx vertx) {
-    return this.mongoDao.updateRecordJson(db, employee, update, vertx);
+  public Future<JsonObject> updateEmployee(DatabaseConfig db, Employee employee, Vertx vertx) {
+    return this.mongoDao.updateRecordJson(db, employee, vertx);
   }
 
   @Override

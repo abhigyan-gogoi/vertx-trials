@@ -13,8 +13,8 @@ public class RouteGenHandlerImpl implements RouteGenHandler{
   private static final Logger log = LoggerFactory.getLogger(RouteGenHandlerImpl.class);
   private final Router router;
   private final DatabaseConfig db;
-  private final Employee employee;
   private final Vertx vertx;
+  private final Employee employee;
   private final DatabaseService dbService;
   private final EmployeeService employeeService;
 
@@ -34,7 +34,7 @@ public class RouteGenHandlerImpl implements RouteGenHandler{
     router.post("/mongo/:DatabaseName/:CollectionName/:ID/:FirstName/:LastName").handler(this::mongoPost);
     router.delete("/mongo/:DatabaseName/:CollectionName/:ID").handler(this::mongoDelete);
     router.delete("/mongo/:DatabaseName/:CollectionName").handler(this::mongoDeleteCollection);
-    router.put("/mongo/:DatabaseName/:CollectionName/:LastName/:NewLastName").handler(this::mongoPut);
+    router.put("/mongo/:DatabaseName/:CollectionName/:ID/:FirstName/:LastName").handler(this::mongoPut);
   }
 
   @Override
@@ -54,9 +54,10 @@ public class RouteGenHandlerImpl implements RouteGenHandler{
         if (res.contains(null)){
           res = new JsonArray()
             .add(new JsonObject()
-              .put("Message", "ID already exists in Database")
+              .put("Message", "ID does NOT exist in Database")
             )
           ;
+
         }
         log.debug("PATH: {}", routingContext.normalizedPath());
         log.debug("REST CALL: {}", restCall);
@@ -99,6 +100,13 @@ public class RouteGenHandlerImpl implements RouteGenHandler{
         return jsonArray;
       })
       .onSuccess(res -> {
+        if (res.contains(null)){
+          res = new JsonArray()
+            .add(new JsonObject()
+              .put("Message", "No Collections in Database")
+            )
+          ;
+        }
         log.debug("PATH: {}", routingContext.normalizedPath());
         log.debug("REST CALL: {}", restCall);
         log.debug("RESPONSE: {}", res.encodePrettily());
@@ -112,9 +120,11 @@ public class RouteGenHandlerImpl implements RouteGenHandler{
     String restCall = "PUT";
     this.db.setDatabaseName(routingContext.pathParam("DatabaseName"));
     this.db.setCollectionName(routingContext.pathParam("CollectionName"));
+    this.employee.set_id(routingContext.pathParam("ID"));
+    this.employee.setFirst_name(routingContext.pathParam("FirstName"));
     this.employee.setLast_name(routingContext.pathParam("LastName"));
-    String NewLastName = routingContext.pathParam("NewLastName");
-    this.employeeService.updateEmployee(this.db, this.employee, NewLastName, vertx)
+    log.debug("HERE:");
+    this.employeeService.updateEmployee(this.db, this.employee, vertx)
       .map(res -> new JsonArray().add(res))
       .onSuccess(res -> {
         if (res.contains(null)){
@@ -124,6 +134,11 @@ public class RouteGenHandlerImpl implements RouteGenHandler{
             )
           ;
         }
+        res
+          .add(new JsonObject()
+            .put("Message", "Replaced above record with the one below"))
+          .add(this.employee.getEmployeeJson())
+        ;
         log.debug("PATH: {}", routingContext.normalizedPath());
         log.debug("REST CALL: {}", restCall);
         log.debug("RESPONSE: {}", res.encodePrettily());
