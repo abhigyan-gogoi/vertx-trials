@@ -12,13 +12,13 @@ import org.slf4j.LoggerFactory;
 public class RouteGenHandlerImpl implements RouteGenHandler{
   private static final Logger log = LoggerFactory.getLogger(RouteGenHandlerImpl.class);
   private final Router router;
-  private final DatabaseConfig db;
+  private final Database db;
   private final Vertx vertx;
   private final Employee employee;
   private final DatabaseService dbService;
   private final EmployeeService employeeService;
 
-  public RouteGenHandlerImpl(DatabaseConfig db, Router router, Vertx vertx){
+  public RouteGenHandlerImpl(Database db, Router router, Vertx vertx){
     this.router = router;
     this.db = db;
     this.vertx = vertx;
@@ -48,7 +48,7 @@ public class RouteGenHandlerImpl implements RouteGenHandler{
     this.db.setDatabaseName(routingContext.pathParam("DatabaseName"));
     this.db.setCollectionName(routingContext.pathParam("CollectionName"));
     this.employee.set_id(routingContext.pathParam("ID"));
-    this.employeeService.showEmployee(this.db, this.employee, vertx)
+    this.employeeService.showEmployee(db, this.employee, vertx)
       .map(res -> new JsonArray().add(res))
       .onSuccess(res -> {
         if (res.contains(null)){
