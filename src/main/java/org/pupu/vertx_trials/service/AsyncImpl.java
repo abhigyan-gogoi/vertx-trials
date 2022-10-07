@@ -19,7 +19,10 @@ public class AsyncImpl extends AbstractVerticle implements Async {
   public void showEmployee(RoutingContext ctx, Vertx vertx, EmployeeService service, Database db, Employee employee, String restCall) {
     service.showEmployee(db, employee, vertx)
       .map(res -> new JsonArray().add(res))
-      .onSuccess(res -> successHandler(res, "ID does NOT exist in Database", ctx, restCall));
+      .onSuccess(res -> {
+        res = emptyResultHandler(res, "ID does NOT exist in Database");
+        responseHandler(ctx, restCall, res);
+      });
   }
 
   // PUT -> Update
@@ -28,20 +31,12 @@ public class AsyncImpl extends AbstractVerticle implements Async {
     service.updateEmployee(db, employee, vertx)
       .map(res -> new JsonArray().add(res))
       .onSuccess(res -> {
-        if (res.contains(null)){
-          res = new JsonArray()
-            .add(new JsonObject()
-              .put("Message", "ID does not exist in Database")
-            );
-        }
+        res = emptyResultHandler(res, "ID does not exist in Database");
         res
           .add(new JsonObject()
             .put("Message", "Replaced above record with the one below"))
           .add(employee.getEmployeeJson());
-        log.debug("PATH: {}", ctx.normalizedPath());
-        log.debug("REST CALL: {}", restCall);
-        log.debug("RESPONSE: {}", res.encodePrettily());
-        ctx.response().end(res.encodePrettily());
+        responseHandler(ctx, restCall, res);
       });
   }
 
@@ -50,7 +45,10 @@ public class AsyncImpl extends AbstractVerticle implements Async {
   public void deleteEmployee(RoutingContext ctx, Vertx vertx, EmployeeService service, Database db, Employee employee, String restCall) {
     service.deleteEmployee(db, employee, vertx)
       .map(res -> new JsonArray().add(res))
-      .onSuccess(res -> successHandler(res, "ID does not exist in Database", ctx, restCall));
+      .onSuccess(res -> {
+        res = emptyResultHandler(res, "ID does not exist in Database");
+        responseHandler(ctx, restCall, res);
+      });
   }
 
   // POST -> Insert
@@ -62,10 +60,7 @@ public class AsyncImpl extends AbstractVerticle implements Async {
         res = new JsonArray()
           .add(employee.getEmployeeJson())
         ;
-        log.debug("PATH: {}", ctx.normalizedPath());
-        log.debug("REST CALL: {}", restCall);
-        log.debug("RESPONSE: {}", res.encodePrettily());
-        ctx.response().end(res.encodePrettily());
+        responseHandler(ctx, restCall, res);
       });
   }
 
@@ -75,7 +70,10 @@ public class AsyncImpl extends AbstractVerticle implements Async {
   public void showCollection(RoutingContext ctx, Vertx vertx, DatabaseService service, Database db, String restCall) {
     service.showCollectionRecords(db, vertx)
       .map(JsonArray::new)
-      .onSuccess(res -> successHandler(res, "Collection does not have any records in Database", ctx, restCall));
+      .onSuccess(res -> {
+        res = emptyResultHandler(res, "Collection does not have any records in Database");
+        responseHandler(ctx, restCall, res);
+      });
   }
 
   // DELETE -> Delete
@@ -88,10 +86,7 @@ public class AsyncImpl extends AbstractVerticle implements Async {
           .put("rest_call", restCall)
           .put("collection_name", db.getCollectionName())
         );
-        log.debug("PATH: {}", ctx.normalizedPath());
-        log.debug("REST CALL: {}", restCall);
-        log.debug("RESPONSE: {}", res.encodePrettily());
-        ctx.response().end(res.encodePrettily());
+        responseHandler(ctx, restCall, res);
       })
     ;
   }
@@ -106,10 +101,7 @@ public class AsyncImpl extends AbstractVerticle implements Async {
           .put("rest_call", restCall)
           .put("collection_name", db.getCollectionName())
         );
-        log.debug("PATH: {}", ctx.normalizedPath());
-        log.debug("REST CALL: {}", restCall);
-        log.debug("RESPONSE: {}", res.encodePrettily());
-        ctx.response().end(res.encodePrettily());
+        responseHandler(ctx, restCall, res);
       });
   }
 
@@ -125,20 +117,26 @@ public class AsyncImpl extends AbstractVerticle implements Async {
         }
         return jsonArray;
       })
-      .onSuccess(res -> successHandler(res, "No Collections in Database", ctx, restCall));
+      .onSuccess(res -> {
+        res = emptyResultHandler(res, "No Collections in Database");
+        responseHandler(ctx, restCall, res);
+      });
   }
 
-  private static void successHandler(JsonArray res, String message, RoutingContext ctx, String restCall) {
-    if (res.contains(null)){
-      res = new JsonArray()
-        .add(new JsonObject()
-          .put("Message", message)
-        )
-      ;
-    }
+  private static void responseHandler(RoutingContext ctx, String restCall, JsonArray res) {
     log.debug("PATH: {}", ctx.normalizedPath());
     log.debug("REST CALL: {}", restCall);
     log.debug("RESPONSE: {}", res.encodePrettily());
     ctx.response().end(res.encodePrettily());
+  }
+
+  private static JsonArray emptyResultHandler(JsonArray res, String msg) {
+    if (res.contains(null)){
+      res = new JsonArray()
+        .add(new JsonObject()
+          .put("Message", msg)
+        );
+    }
+    return res;
   }
 }
