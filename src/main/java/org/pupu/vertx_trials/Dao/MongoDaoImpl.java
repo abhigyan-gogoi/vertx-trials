@@ -13,21 +13,13 @@ import java.util.List;
 
 public class MongoDaoImpl implements MongoDao {
   private static final Logger log = LoggerFactory.getLogger(MongoDaoImpl.class);
-  private JsonObject dbConfig;
-  public void setMongoConfig(DatabaseConfig db) {
-    // Create JSON object for connecting to MongoDB server
-    this.dbConfig = new JsonObject()
-      .put("connection_uri", db.getDbUri())
-      .put("db_name", db.getDatabaseName())
-      ;
-  }
 
   @Override
   public Future<String> insertRecordJson(DatabaseConfig db, Employee employee, Vertx vertx) {
     // Set MongoDB config
-    setMongoConfig(db);
+    db.setMongoConfig();
     // Create MongoClient
-    MongoClient client = MongoClient.createShared(vertx, this.dbConfig);
+    MongoClient client = MongoClient.createShared(vertx, db.getDbConfig());
     log.debug("JSON: {}", employee.getEmployeeJson().encodePrettily());
     return client.insert(db.getCollectionName(), employee.getEmployeeJson());
   }
@@ -35,18 +27,18 @@ public class MongoDaoImpl implements MongoDao {
   @Override
   public Future<Void> insertCollection(DatabaseConfig db, Vertx vertx) {
     // Set MongoDB config
-    setMongoConfig(db);
+    db.setMongoConfig();
     // Create MongoClient
-    MongoClient client = MongoClient.createShared(vertx, this.dbConfig);
+    MongoClient client = MongoClient.createShared(vertx, db.getDbConfig());
     return client.createCollection(db.getCollectionName());
   }
 
   @Override
   public Future<JsonObject> updateRecordJson(DatabaseConfig db, Employee employee, Vertx vertx) {
     // Set MongoDB config
-    setMongoConfig(db);
+    db.setMongoConfig();
     // Create MongoClient
-    MongoClient client = MongoClient.createShared(vertx, this.dbConfig);
+    MongoClient client = MongoClient.createShared(vertx, db.getDbConfig());
     // Create JSON Object for query
     JsonObject query = new JsonObject()
       .put("_id", employee.get_id());
@@ -62,9 +54,9 @@ public class MongoDaoImpl implements MongoDao {
   @Override
   public Future<JsonObject> showRecordJson(DatabaseConfig db, Employee employee, Vertx vertx) {
     // Set MongoDB config
-    setMongoConfig(db);
+    db.setMongoConfig();
     // Create MongoClient
-    MongoClient client = MongoClient.createShared(vertx, this.dbConfig);
+    MongoClient client = MongoClient.createShared(vertx, db.getDbConfig());
     // Create JSON Object for query
     JsonObject query = new JsonObject()
       .put("_id", employee.get_id());
@@ -76,9 +68,9 @@ public class MongoDaoImpl implements MongoDao {
   @Override
   public Future<List<JsonObject>> showCollectionRecords(DatabaseConfig db, Vertx vertx) {
     // Set MongoDB config
-    setMongoConfig(db);
+    db.setMongoConfig();
     // Create MongoClient
-    MongoClient client = MongoClient.createShared(vertx, this.dbConfig);
+    MongoClient client = MongoClient.createShared(vertx, db.getDbConfig());
     // Create JSON Object for query
     JsonObject query = new JsonObject();
     return client.find(db.getCollectionName(), query);
@@ -87,18 +79,18 @@ public class MongoDaoImpl implements MongoDao {
   @Override
   public Future<List<String>> showCollections(DatabaseConfig db, Vertx vertx) {
     // Set MongoDB config
-    setMongoConfig(db);
+    db.setMongoConfig();
     // Create MongoClient
-    MongoClient client = MongoClient.createShared(vertx, this.dbConfig);
+    MongoClient client = MongoClient.createShared(vertx, db.getDbConfig());
     return client.getCollections();
   }
 
   @Override
   public Future<JsonObject> deleteRecordJson(DatabaseConfig db, Employee employee, Vertx vertx) {
     // Set MongoDB config
-    setMongoConfig(db);
+    db.setMongoConfig();
     // Create MongoClient
-    MongoClient client = MongoClient.createShared(vertx, this.dbConfig);
+    MongoClient client = MongoClient.createShared(vertx, db.getDbConfig());
     // Create JSON Object for query
     JsonObject query = new JsonObject()
       .put("_id", employee.get_id());
@@ -110,9 +102,9 @@ public class MongoDaoImpl implements MongoDao {
   @Override
   public Future<Void> deleteCollection(DatabaseConfig db, Vertx vertx) {
     // Set MongoDB config
-    setMongoConfig(db);
+    db.setMongoConfig();
     // Create MongoClient
-    MongoClient client = MongoClient.createShared(vertx, this.dbConfig);
+    MongoClient client = MongoClient.createShared(vertx, db.getDbConfig());
     return client.dropCollection(db.getCollectionName());
   }
 }
