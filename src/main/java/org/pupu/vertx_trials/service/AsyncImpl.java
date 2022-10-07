@@ -15,25 +15,15 @@ public class AsyncImpl extends AbstractVerticle implements Async {
 
   // Employee Service (Record/Document) Methods
   // GET -> Show
+  @Override
   public void showEmployee(RoutingContext ctx, Vertx vertx, EmployeeService service, Database db, Employee employee, String restCall) {
     service.showEmployee(db, employee, vertx)
       .map(res -> new JsonArray().add(res))
-      .onSuccess(res -> {
-        if (res.contains(null)){
-          res = new JsonArray()
-            .add(new JsonObject()
-              .put("Message", "ID does NOT exist in Database")
-            );
-
-        }
-        log.debug("PATH: {}", ctx.normalizedPath());
-        log.debug("REST CALL: {}", restCall);
-        log.debug("RESPONSE: {}", res.encodePrettily());
-        ctx.response().end(res.encodePrettily());
-      });
+      .onSuccess(res -> successHandler(res, "ID does NOT exist in Database", ctx, restCall));
   }
 
   // PUT -> Update
+  @Override
   public void updateEmployee(RoutingContext ctx, Vertx vertx, EmployeeService service, Database db, Employee employee, String restCall) {
     service.updateEmployee(db, employee, vertx)
       .map(res -> new JsonArray().add(res))
@@ -56,24 +46,15 @@ public class AsyncImpl extends AbstractVerticle implements Async {
   }
 
   // DELETE -> Delete
+  @Override
   public void deleteEmployee(RoutingContext ctx, Vertx vertx, EmployeeService service, Database db, Employee employee, String restCall) {
     service.deleteEmployee(db, employee, vertx)
       .map(res -> new JsonArray().add(res))
-      .onSuccess(res -> {
-        if (res.contains(null)){
-          res = new JsonArray()
-            .add(new JsonObject()
-              .put("Message", "ID does not exist in Database")
-            );
-        }
-        log.debug("PATH: {}", ctx.normalizedPath());
-        log.debug("REST CALL: {}", restCall);
-        log.debug("RESPONSE: {}", res.encodePrettily());
-        ctx.response().end(res.encodePrettily());
-      });
+      .onSuccess(res -> successHandler(res, "ID does not exist in Database", ctx, restCall));
   }
 
   // POST -> Insert
+  @Override
   public void insertEmployee (RoutingContext ctx, Vertx vertx, EmployeeService service, Database db, Employee employee, String restCall) {
     service.insertEmployee(db, employee, vertx)
       .map(res -> new JsonArray())
@@ -90,25 +71,15 @@ public class AsyncImpl extends AbstractVerticle implements Async {
 
   // Collection Methods
   // GET -> Show
+  @Override
   public void showCollection(RoutingContext ctx, Vertx vertx, DatabaseService service, Database db, String restCall) {
     service.showCollectionRecords(db, vertx)
       .map(JsonArray::new)
-      .onSuccess(res -> {
-        if (res.contains(null)){
-          res = new JsonArray()
-            .add(new JsonObject()
-              .put("Message", "Collection does not have any records in Database")
-            )
-          ;
-        }
-        log.debug("PATH: {}", ctx.normalizedPath());
-        log.debug("REST CALL: {}", restCall);
-        log.debug("RESPONSE: {}", res.encodePrettily());
-        ctx.response().end(res.encodePrettily());
-      });
+      .onSuccess(res -> successHandler(res, "Collection does not have any records in Database", ctx, restCall));
   }
 
   // DELETE -> Delete
+  @Override
   public void deleteCollection(RoutingContext ctx, Vertx vertx, DatabaseService service, Database db, String restCall) {
     service.deleteCollection(db, vertx)
       .map(res -> new JsonArray())
@@ -126,6 +97,7 @@ public class AsyncImpl extends AbstractVerticle implements Async {
   }
 
   // POST -> Insert
+  @Override
   public void insertCollection(RoutingContext ctx, Vertx vertx, DatabaseService service, Database db, String restCall) {
     service.insertCollection(db, vertx)
       .map(res -> new JsonArray())
@@ -143,6 +115,7 @@ public class AsyncImpl extends AbstractVerticle implements Async {
 
   // Database Methods
   // GET -> Show
+  @Override
   public void showDatabase(RoutingContext ctx, Vertx vertx, DatabaseService service, Database db, String restCall) {
     service.showCollections(db, vertx)
       .map(res -> {
@@ -152,18 +125,20 @@ public class AsyncImpl extends AbstractVerticle implements Async {
         }
         return jsonArray;
       })
-      .onSuccess(res -> {
-        if (res.contains(null)){
-          res = new JsonArray()
-            .add(new JsonObject()
-              .put("Message", "No Collections in Database")
-            )
-          ;
-        }
-        log.debug("PATH: {}", ctx.normalizedPath());
-        log.debug("REST CALL: {}", restCall);
-        log.debug("RESPONSE: {}", res.encodePrettily());
-        ctx.response().end(res.encodePrettily());
-      });
+      .onSuccess(res -> successHandler(res, "No Collections in Database", ctx, restCall));
+  }
+
+  private static void successHandler(JsonArray res, String message, RoutingContext ctx, String restCall) {
+    if (res.contains(null)){
+      res = new JsonArray()
+        .add(new JsonObject()
+          .put("Message", message)
+        )
+      ;
+    }
+    log.debug("PATH: {}", ctx.normalizedPath());
+    log.debug("REST CALL: {}", restCall);
+    log.debug("RESPONSE: {}", res.encodePrettily());
+    ctx.response().end(res.encodePrettily());
   }
 }
